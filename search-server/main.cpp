@@ -83,6 +83,12 @@ public:
 
 private:
 
+    struct QueryWord {
+        string data;
+        bool is_minus;
+        bool is_stop;
+    };
+
     struct Query {
         set<string> plus_words;
         set<string> minus_words;
@@ -108,23 +114,29 @@ private:
         return words;
     }
 
+    QueryWord ParseQueryWord(string text) const {
+        bool is_minus = false;
+        if (text[0] == '-') {
+            is_minus = true;
+            text = text.substr(1);
+        }
+        return { text, is_minus, IsStopWord(text) };
+    }
+
     Query ParseQuery(const string& text) const {
-        Query true_query;
-        for (string& word : SplitIntoWordsNoStop(text)) {
-            if (word[0] == '-') {
-                word = word.substr(1);
-                if (stop_words_.count(word)) {
-                    continue;
+        Query query;
+        for (const string& word : SplitIntoWords(text)) {
+            const QueryWord query_word = ParseQueryWord(word);
+            if (!query_word.is_stop) {
+                if (query_word.is_minus) {
+                    query.minus_words.insert(query_word.data);
                 }
                 else {
-                    true_query.minus_words.insert(word);
+                    query.plus_words.insert(query_word.data);
                 }
             }
-            else {
-                true_query.plus_words.insert(word);
-            }
         }
-        return true_query;
+        return query;
     }
 
     double CalculateIDFCoeff(const string& word) const {
