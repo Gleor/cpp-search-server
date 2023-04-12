@@ -422,11 +422,11 @@ void TestPredicate() {
         ASSERT_EQUAL(documents[2].id, 2);
         const auto documents_1 = server.FindTopDocuments("пушистый ухоженный кот"s, DocumentStatus::BANNED);
         //Проверка на то, что возвращается не пустой вектор
-        ASSERT_HINT(!documents.empty(), "Non empty container should be returned"s);
+        ASSERT_HINT(!documents_1.empty(), "Non empty container should be returned"s);
         ASSERT_EQUAL(documents_1[0].id, 3);
         const auto documents_2 = server.FindTopDocuments("пушистый ухоженный кот"s, [](int document_id, DocumentStatus status, int rating) { return document_id % 2 == 0; });
         //Проверка на то, что возвращается не пустой вектор
-        ASSERT_HINT(!documents.empty(), "Non empty container should be returned"s);
+        ASSERT_HINT(!documents_2.empty(), "Non empty container should be returned"s);
         ASSERT_EQUAL(documents_2[0].id, 0);
         ASSERT_EQUAL(documents_2[1].id, 2);
     }
@@ -447,15 +447,15 @@ void TestStatusSearch() {
         ASSERT_EQUAL(documents[0].id, 0);
         const auto documents_1 = server.FindTopDocuments("пушистый ухоженный кот"s, DocumentStatus::IRRELEVANT);
         //Проверка на то, что возвращается не пустой вектор
-        ASSERT_HINT(!documents.empty(), "Non empty container should be returned"s);
+        ASSERT_HINT(!documents_1.empty(), "Non empty container should be returned"s);
         ASSERT_EQUAL(documents_1[0].id, 1);
         const auto documents_2 = server.FindTopDocuments("пушистый ухоженный кот"s, DocumentStatus::BANNED);
         //Проверка на то, что возвращается не пустой вектор
-        ASSERT_HINT(!documents.empty(), "Non empty container should be returned"s);
+        ASSERT_HINT(!documents_2.empty(), "Non empty container should be returned"s);
         ASSERT_EQUAL(documents_2[0].id, 2);
         const auto documents_3 = server.FindTopDocuments("пушистый ухоженный кот"s, DocumentStatus::REMOVED);
         //Проверка на то, что возвращается не пустой вектор
-        ASSERT_HINT(!documents.empty(), "Non empty container should be returned"s);
+        ASSERT_HINT(!documents_3.empty(), "Non empty container should be returned"s);
         ASSERT_EQUAL(documents_3[0].id, 3);
     }
 }
