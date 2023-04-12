@@ -1,4 +1,5 @@
-﻿/*#include <algorithm>
+﻿/*
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <map>
@@ -248,7 +249,7 @@ private:
 
 template <typename T, typename U>
 void AssertEqualImpl(const T& t, const U& u, const string& t_str, const string& u_str, const string& file,
-                     const string& func, unsigned line, const string& hint) {
+    const string& func, unsigned line, const string& hint) {
     if (t != u) {
         cerr << boolalpha;
         cerr << file << "("s << line << "): "s << func << ": "s;
@@ -267,7 +268,7 @@ void AssertEqualImpl(const T& t, const U& u, const string& t_str, const string& 
 #define ASSERT_EQUAL_HINT(a, b, hint) AssertEqualImpl((a), (b), #a, #b, __FILE__, __FUNCTION__, __LINE__, (hint))
 
 void AssertImpl(bool value, const string& expr_str, const string& file, const string& func, unsigned line,
-                const string& hint) {
+    const string& hint) {
     if (!value) {
         cerr << file << "("s << line << "): "s << func << ": "s;
         cerr << "Assert("s << expr_str << ") failed."s;
@@ -285,7 +286,7 @@ void AssertImpl(bool value, const string& expr_str, const string& file, const st
 
 template <typename T>
 void RunTestImpl(const T& func, const string& f_str) {
-     func();
+    func();
     cerr << f_str << " SUCCESS" << endl;
 }
 
@@ -375,9 +376,11 @@ void TestRelevanceSort() {
         server.AddDocument(1, "пушистый кот пушистый хвост"s, DocumentStatus::ACTUAL, { 7, 2, 7 });
         server.AddDocument(2, "ухоженный пёс выразительные глаза"s, DocumentStatus::ACTUAL, { 5, -12, 2, 1 });
         const auto documents = server.FindTopDocuments("пушистый ухоженный кот"s);
-        ASSERT_EQUAL(documents[0].id, 1);
-        ASSERT_EQUAL(documents[1].id, 2);
-        ASSERT_EQUAL(documents[2].id, 0);
+        //Проверка на то, что возвращается не пустой вектор
+        ASSERT_HINT(!documents.empty(), "Non empty container should be returned"s);
+        //Преверяем правильную сортировку по релевантности путём сравнения полей relevance
+        ASSERT(documents[0].relevance > documents[1].relevance);
+        ASSERT(documents[1].relevance > documents[2].relevance);
     }
 }
 
@@ -391,9 +394,13 @@ void TestRatingCalculation() {
         server.AddDocument(1, "пушистый кот пушистый хвост"s, DocumentStatus::ACTUAL, { 7, 2, 7 });
         server.AddDocument(2, "ухоженный пёс выразительные глаза"s, DocumentStatus::ACTUAL, { 5, -12, 2, 1 });
         const auto documents = server.FindTopDocuments("пушистый ухоженный кот"s);
-        ASSERT_EQUAL(documents[0].rating, 5);
-        ASSERT_EQUAL(documents[1].rating, -1);
-        ASSERT_EQUAL(documents[2].rating, 2);
+        //Проверка на то, что возвращается не пустой вектор
+        ASSERT_HINT(!documents.empty(), "Non empty container should be returned"s);
+        //Проверяем правльный расчёт рейтинга
+        //Складываем все значения вектора и делим на количество элементов (размер вектора)
+        ASSERT_EQUAL(documents[0].rating, ((7 + 2 + 7) / 3));
+        ASSERT_EQUAL(documents[1].rating, ((5 + (-12) + 2 + 1) / 4));
+        ASSERT_EQUAL(documents[2].rating, ((8 + (-3)) / 2));
     }
 }
 
@@ -408,12 +415,18 @@ void TestPredicate() {
         server.AddDocument(2, "ухоженный пёс выразительные глаза"s, DocumentStatus::ACTUAL, { 5, -12, 2, 1 });
         server.AddDocument(3, "ухоженный скворец евгений"s, DocumentStatus::BANNED, { 9 });
         const auto documents = server.FindTopDocuments("пушистый ухоженный кот"s);
+        //Проверка на то, что возвращается не пустой вектор
+        ASSERT_HINT(!documents.empty(), "Non empty container should be returned"s);
         ASSERT_EQUAL(documents[0].id, 1);
         ASSERT_EQUAL(documents[1].id, 0);
         ASSERT_EQUAL(documents[2].id, 2);
         const auto documents_1 = server.FindTopDocuments("пушистый ухоженный кот"s, DocumentStatus::BANNED);
+        //Проверка на то, что возвращается не пустой вектор
+        ASSERT_HINT(!documents.empty(), "Non empty container should be returned"s);
         ASSERT_EQUAL(documents_1[0].id, 3);
         const auto documents_2 = server.FindTopDocuments("пушистый ухоженный кот"s, [](int document_id, DocumentStatus status, int rating) { return document_id % 2 == 0; });
+        //Проверка на то, что возвращается не пустой вектор
+        ASSERT_HINT(!documents.empty(), "Non empty container should be returned"s);
         ASSERT_EQUAL(documents_2[0].id, 0);
         ASSERT_EQUAL(documents_2[1].id, 2);
     }
@@ -429,12 +442,20 @@ void TestStatusSearch() {
         server.AddDocument(2, "белый кот и модный ошейник"s, DocumentStatus::BANNED, { 5, -12, 2, 1 });
         server.AddDocument(3, "белый кот и модный ошейник"s, DocumentStatus::REMOVED, { 9 });
         const auto documents = server.FindTopDocuments("пушистый ухоженный кот"s, DocumentStatus::ACTUAL);
+        //Проверка на то, что возвращается не пустой вектор
+        ASSERT_HINT(!documents.empty(), "Non empty container should be returned"s);
         ASSERT_EQUAL(documents[0].id, 0);
         const auto documents_1 = server.FindTopDocuments("пушистый ухоженный кот"s, DocumentStatus::IRRELEVANT);
+        //Проверка на то, что возвращается не пустой вектор
+        ASSERT_HINT(!documents.empty(), "Non empty container should be returned"s);
         ASSERT_EQUAL(documents_1[0].id, 1);
         const auto documents_2 = server.FindTopDocuments("пушистый ухоженный кот"s, DocumentStatus::BANNED);
+        //Проверка на то, что возвращается не пустой вектор
+        ASSERT_HINT(!documents.empty(), "Non empty container should be returned"s);
         ASSERT_EQUAL(documents_2[0].id, 2);
         const auto documents_3 = server.FindTopDocuments("пушистый ухоженный кот"s, DocumentStatus::REMOVED);
+        //Проверка на то, что возвращается не пустой вектор
+        ASSERT_HINT(!documents.empty(), "Non empty container should be returned"s);
         ASSERT_EQUAL(documents_3[0].id, 3);
     }
 }
@@ -449,9 +470,18 @@ void TestRelevanceCalculation() {
         server.AddDocument(1, "пушистый кот пушистый хвост"s, DocumentStatus::ACTUAL, { 7, 2, 7 });
         server.AddDocument(2, "ухоженный пёс выразительные глаза"s, DocumentStatus::ACTUAL, { 5, -12, 2, 1 });
         const auto documents = server.FindTopDocuments("пушистый ухоженный кот"s);
-        ASSERT(abs(documents[0].relevance - 0.650672) < 1e-6);
-        ASSERT(abs(documents[1].relevance - 0.274653) < 1e-6);
-        ASSERT(abs(documents[2].relevance - 0.101366) < 1e-6);
+        //Проверка на то, что возвращается не пустой вектор
+        ASSERT_HINT(!documents.empty(), "Non empty container should be returned"s);
+        //Формула для вычисления IDF: log(GetDocumentCount() * 1.0 / word_to_document_freqs_.at(word).size());
+        // Количество документов - 3
+        // TF слова пушистый во втором документе составляет 2/4=0.5
+        // TF слова ухоженный в третьем документе составляет 1/4=0.25
+        // TF слова кот в первом и втором документах составляет 0.25 и 0.25
+        // В скольких документах встречается каждое слово из поиска:
+        // Пушистый - 1; Ухоженный - 1; Кот - 2
+        ASSERT(abs(documents[0].relevance - (0.5 * log(3 * 1.0 / 1) + 0.25 * log(3 * 1.0 / 2)) < 1e-6));
+        ASSERT(abs(documents[1].relevance - (0.25 * log(3 * 1.0 / 1))) < 1e-6);
+        ASSERT(abs(documents[2].relevance - (0.25 * log(3 * 1.0 / 2))) < 1e-6);
     }
 }
 
