@@ -233,7 +233,7 @@ private:
         bool is_minus = false;
         // Word shouldn't be empty
 
-        if (text[0] == '-' && text.size() >= 1) {
+        if (!text.empty() && text[0] == '-') {
             if (text.size() == 1) {
                 throw invalid_argument("Invalid query"s);
             }
