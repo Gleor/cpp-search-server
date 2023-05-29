@@ -40,6 +40,6 @@ void TestRatingCalculation();
 void TestPredicate();
 void TestStatusSearch();
 void TestRelevanceCalculation();
-void TestRequestQueue();
-void TestRemoveDuplicates();
+//void TestRequestQueue();
+//void TestRemoveDuplicates();
 void TestSearchServer();

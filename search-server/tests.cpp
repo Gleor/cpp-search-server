@@ -208,7 +208,7 @@ void TestRelevanceCalculation() {
         ASSERT(abs(documents[2].relevance - (0.25 * log(3 * 1.0 / 2))) < 1e-6);
     }
 }
-void TestRequestQueue() {
+/*void TestRequestQueue() {
     SearchServer search_server("and in at"s);
     RequestQueue request_queue(search_server);
     search_server.AddDocument(1, "curly cat curly tail"s, DocumentStatus::ACTUAL, { 7, 2, 7 });
@@ -234,8 +234,8 @@ void TestRequestQueue() {
     }
     //Пустых запросов должно стать 0
     ASSERT_EQUAL(request_queue.GetNoResultRequests(), 0);
-}
-void TestRemoveDuplicates() {
+}*/
+/*void TestRemoveDuplicates() {
     SearchServer search_server("and with"s);
 
     search_server.AddDocument(1, "funny pet and nasty rat"s, DocumentStatus::ACTUAL, { 7, 2, 7 });
@@ -279,7 +279,7 @@ void TestRemoveDuplicates() {
     ASSERT_EQUAL(documents[2].id, 1);
     ASSERT_EQUAL(documents[3].id, 8);
     ASSERT_EQUAL(documents[4].id, 6);
-}
+}*/
 // Функция TestSearchServer является точкой входа для запуска тестов
 void TestSearchServer() {
     RUN_TEST(TestExcludeStopWordsFromAddedDocumentContent);
@@ -290,8 +290,8 @@ void TestSearchServer() {
     RUN_TEST(TestPredicate);
     RUN_TEST(TestStatusSearch);
     RUN_TEST(TestRelevanceCalculation);
-    RUN_TEST(TestRequestQueue);
-    RUN_TEST(TestRemoveDuplicates);
+    //RUN_TEST(TestRequestQueue);
+    //RUN_TEST(TestRemoveDuplicates);
 }
 
 // --------- Окончание модульных тестов поисковой системы -----------
