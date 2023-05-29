@@ -79,23 +79,13 @@ std::tuple<std::vector<std::string>, DocumentStatus> SearchServer::MatchDocument
 }
 
 void SearchServer::RemoveDocument(int document_id) {
-    /*auto it = word_to_document_freqs_.begin();
-    while (it != word_to_document_freqs_.end()) {
-        if (it->second.count(document_id)) {
-            it->second.erase(document_id);
-        }
-        else {
-            word_to_document_freqs_.erase(it);
-        }
-    }*/
-
     auto& word_freq = id_to_word_freqs.at(document_id);
     for (auto iter = word_freq.begin(); iter != word_freq.end(); iter++) {
         auto it_del = word_to_document_freqs_.find(iter->first);
         (it_del->second.size() == 1) ? (void)word_to_document_freqs_.erase(it_del) : (void)it_del->second.erase(document_id);
     }
-    id_to_word_freqs.erase(id_to_word_freqs.find(document_id));
-    documents_.erase(documents_.find(document_id));
+    id_to_word_freqs.erase(document_id);
+    documents_.erase(document_id);
     document_index_.erase(find(document_index_.begin(), document_index_.end(), document_id));
 }
 
