@@ -2,16 +2,20 @@
 #include "search_server.h"
 #include "document.h"
 #include "request_queue.h"
+#include "remove_duplicates.h"
+#include <set>
 
-void AssertImpl(bool value, const string& expr_str, const string& file, const string& func, unsigned line,
-    const string& hint) {
+using namespace std::string_literals;
+
+void AssertImpl(bool value, const std::string& expr_str, const std::string& file, const std::string& func, unsigned line,
+    const std::string& hint) {
     if (!value) {
-        cerr << file << "("s << line << "): "s << func << ": "s;
-        cerr << "Assert("s << expr_str << ") failed."s;
+        std::cerr << file << "("s << line << "): "s << func << ": "s;
+        std::cerr << "Assert("s << expr_str << ") failed."s;
         if (!hint.empty()) {
-            cerr << " Hint: "s << hint;
+            std::cerr << " Hint: "s << hint;
         }
-        cerr << endl;
+        std::cerr << std::endl;
         abort();
     }
 }
@@ -20,20 +24,19 @@ void AssertImpl(bool value, const string& expr_str, const string& file, const st
 
 // Тест проверяет, что поисковая система исключает стоп-слова при добавлении документов
 void TestExcludeStopWordsFromAddedDocumentContent() {
-    using namespace std::string_literals;
+
     const int doc_id = 42;
     const int doc_id_1 = 6;
     const std::string content = "cat in the city"s;
     const std::string content_1 = "dog on the roof"s;
-    const vector<int> ratings = { 1, 2, 3 };
-    const vector<int> ratings_1 = { 3, 2, 4 };
+    const std::vector<int> ratings = { 1, 2, 3 };
+    const std::vector<int> ratings_1 = { 3, 2, 4 };
     {
         SearchServer server("and in at"s);
         server.AddDocument(doc_id, content, DocumentStatus::ACTUAL, ratings);
         const auto found_docs = server.FindTopDocuments("in"s);
-        ASSERT_EQUAL(found_docs.size(), 1u);
-        const Document& doc0 = found_docs[0];
-        ASSERT_EQUAL(doc0.id, doc_id);
+        //Поиск по стоп слову не должен давать результатов
+        ASSERT_EQUAL(found_docs.size(), 0);
     }
 
     {
@@ -80,7 +83,7 @@ void TestMatchDocuments() {
         server.AddDocument(1, "black dog on the roof"s, DocumentStatus::ACTUAL, { 3, 2, 4 });
         server.AddDocument(2, "green frog in the big garden"s, DocumentStatus::ACTUAL, { 5, -1, 1 });
         const auto [words, doc_status] = server.MatchDocument("black dog", 0);
-        set<string> words_set(words.begin(), words.end());
+        std::set<std::string> words_set(words.begin(), words.end());
         ASSERT_EQUAL(words_set.count("black"s), 1);
         const auto [words_1, doc_status_1] = server.MatchDocument("big cat -frog", 2);
         ASSERT_EQUAL(words_1.size(), 0);
@@ -91,7 +94,7 @@ void TestRelevanceSort() {
     // Сортировка по релевантности
 
     {
-        SearchServer server("in the on"s);
+        SearchServer server("и в на"s);
         //server.SetStopWords("и в на"s);
         server.AddDocument(0, "белый кот и модный ошейник"s, DocumentStatus::ACTUAL, { 8, -3 });
         server.AddDocument(1, "пушистый кот пушистый хвост"s, DocumentStatus::ACTUAL, { 7, 2, 7 });
@@ -232,6 +235,51 @@ void TestRequestQueue() {
     //Пустых запросов должно стать 0
     ASSERT_EQUAL(request_queue.GetNoResultRequests(), 0);
 }
+void TestRemoveDuplicates() {
+    SearchServer search_server("and with"s);
+
+    search_server.AddDocument(1, "funny pet and nasty rat"s, DocumentStatus::ACTUAL, { 7, 2, 7 });
+    search_server.AddDocument(2, "funny pet with curly hair"s, DocumentStatus::ACTUAL, { 1, 2 });
+
+    // дубликат документа 2, будет удалён
+    search_server.AddDocument(3, "funny pet with curly hair"s, DocumentStatus::ACTUAL, { 1, 2 });
+
+    // отличие только в стоп-словах, считаем дубликатом
+    search_server.AddDocument(4, "funny pet and curly hair"s, DocumentStatus::ACTUAL, { 1, 2 });
+
+    // множество слов такое же, считаем дубликатом документа 1
+    search_server.AddDocument(5, "funny funny pet and nasty nasty rat"s, DocumentStatus::ACTUAL, { 1, 2 });
+
+    // добавились новые слова, дубликатом не является
+    search_server.AddDocument(6, "funny pet and not very nasty rat"s, DocumentStatus::ACTUAL, { 1, 2 });
+
+    // множество слов такое же, как в id 6, несмотря на другой порядок, считаем дубликатом
+    search_server.AddDocument(7, "very nasty rat and not very funny pet"s, DocumentStatus::ACTUAL, { 1, 2 });
+
+    // есть не все слова, не является дубликатом
+    search_server.AddDocument(8, "pet with rat and rat and rat"s, DocumentStatus::ACTUAL, { 1, 2 });
+
+    // слова из разных документов, не является дубликатом
+    search_server.AddDocument(9, "nasty rat with curly hair"s, DocumentStatus::ACTUAL, { 1, 2 });
+
+    //Проверяем сколько документов содержится до очистки
+    ASSERT_EQUAL(search_server.GetDocumentCount(), 9);
+
+    //Удаляем дубликаты
+    RemoveDuplicates(search_server);
+
+    //Проверяем сколько документов содержится после очистки
+    ASSERT_EQUAL(search_server.GetDocumentCount(), 5);
+
+    //Проверим, что удалились и остались правильные дакументы
+    auto documents = search_server.FindTopDocuments("nasty rat with curly hair");
+    ASSERT_EQUAL(documents.size(), 5);
+    ASSERT_EQUAL(documents[0].id, 9);
+    ASSERT_EQUAL(documents[1].id, 2);
+    ASSERT_EQUAL(documents[2].id, 1);
+    ASSERT_EQUAL(documents[3].id, 8);
+    ASSERT_EQUAL(documents[4].id, 6);
+}
 // Функция TestSearchServer является точкой входа для запуска тестов
 void TestSearchServer() {
     RUN_TEST(TestExcludeStopWordsFromAddedDocumentContent);
@@ -243,6 +291,7 @@ void TestSearchServer() {
     RUN_TEST(TestStatusSearch);
     RUN_TEST(TestRelevanceCalculation);
     RUN_TEST(TestRequestQueue);
+    RUN_TEST(TestRemoveDuplicates);
 }
 
 // --------- Окончание модульных тестов поисковой системы -----------

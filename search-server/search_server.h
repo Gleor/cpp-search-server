@@ -8,9 +8,8 @@
 #include <utility>
 #include <cmath>
 #include <stdexcept>
-
+#define THRESHOLD 1e-6
 const int MAX_RESULT_DOCUMENT_COUNT = 5;
-const double THRESHOLD = 1e-6;
 
 class SearchServer {
 public:
@@ -26,9 +25,19 @@ public:
 
     int GetDocumentCount() const;
 
-    int GetDocumentId(int index) const;
+    auto begin() {
+        return document_index_.begin();
+    }
+
+    auto end() {
+        return document_index_.end();
+    }
+
+    const std::map<std::string, double>& GetWordFrequencies(int document_id) const;
 
     std::tuple<std::vector<std::string>, DocumentStatus> MatchDocument(const std::string& raw_query, int document_id) const;
+    
+    void RemoveDocument(int document_id);
 
 private:
     struct DocumentData {
@@ -37,6 +46,7 @@ private:
     };
     const std::set<std::string> stop_words_;
     std::map<std::string, std::map<int, double>> word_to_document_freqs_;
+    std::map<int, std::map<std::string, double>> id_to_word_freqs;
     std::map<int, DocumentData> documents_;
     std::vector<int> document_index_;
 
