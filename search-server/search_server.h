@@ -16,11 +16,11 @@
 #include <future>
 #include "concurrent_map.h"
 
-#define BORDER 1e-6
+constexpr double BORDER = 1e-6;
 
-const int MAX_RESULT_DOCUMENT_COUNT = 5;
+constexpr int MAX_RESULT_DOCUMENT_COUNT = 5;
 
-const size_t BUCKETS_N = 8;
+constexpr size_t BUCKETS_N = 8;
 
 class SearchServer {
 public:
@@ -61,9 +61,11 @@ public:
 
     const std::map<std::string_view, double>& GetWordFrequencies(int document_id) const;
 
-    std::tuple<std::vector<std::string_view>, DocumentStatus> MatchDocument(const std::string_view raw_query, int document_id) const;
-    std::tuple<std::vector<std::string_view>, DocumentStatus> MatchDocument(const std::execution::sequenced_policy&, const std::string_view raw_query, int document_id) const;
-    std::tuple<std::vector<std::string_view>, DocumentStatus> MatchDocument(const std::execution::parallel_policy&, const std::string_view raw_query, int document_id) const;
+    using MatchResult = std::tuple<std::vector<std::string_view>, DocumentStatus>;
+
+    MatchResult MatchDocument(const std::string_view raw_query, int document_id) const;
+    MatchResult MatchDocument(const std::execution::sequenced_policy&, const std::string_view raw_query, int document_id) const;
+    MatchResult MatchDocument(const std::execution::parallel_policy&, const std::string_view raw_query, int document_id) const;
 
     void RemoveDocument(int document_id);
     void RemoveDocument(const std::execution::sequenced_policy& exec, int document_id);
@@ -72,6 +74,7 @@ private:
     struct DocumentData {
         int rating;
         DocumentStatus status;
+        std::string document_content;
     };
     const std::set<std::string, std::less<>> stop_words_;
     std::map<std::string_view, std::map<int, double>> word_to_document_freqs_;
@@ -101,9 +104,7 @@ private:
         std::vector<std::string_view> minus_words;
     };
 
-    Query ParseQuery(const std::string_view text) const;
-    Query ParseQuery(const std::execution::sequenced_policy&, const std::string_view text) const;
-    Query ParseQuery(const std::execution::parallel_policy&, const std::string_view text) const;
+    Query ParseQuery(const std::string_view text, bool sequenced = true) const;
 
     double ComputeWordInverseDocumentFreq(const std::string_view word) const;
 
@@ -121,48 +122,6 @@ private:
         const Query&,
         DocumentPredicate) const;
 };
-
-template <typename ExecutionPolicy, typename ForwardRange, typename Function>
-void ForEach(const ExecutionPolicy& policy, ForwardRange& range, Function function)
-{
-    if constexpr (
-        std::is_same_v<ExecutionPolicy, std::execution::sequenced_policy>
-        || std::is_same_v<typename std::iterator_traits<typename ForwardRange::iterator>::iterator_category,
-        std::random_access_iterator_tag>
-        )
-    {
-        std::for_each(policy, range.begin(), range.end(), function);
-    }
-    else
-    {
-        static constexpr int PART_COUNT = 16;
-        const auto part_length = size(range) / PART_COUNT;
-        auto part_begin = range.begin();
-        auto part_end = next(part_begin, part_length);
-
-        std::vector<std::future<void>> futures;
-        for (int i = 0;
-            i < PART_COUNT;
-            ++i,
-            part_begin = part_end,
-            part_end = (i == PART_COUNT - 1
-                ? range.end()
-                : next(part_begin, part_length))
-            )
-        {
-            futures.push_back(async([function, part_begin, part_end]
-                {
-                    for_each(part_begin, part_end, function);
-                }));
-        }
-    }
-}
-
-template <typename ForwardRange, typename Function>
-void ForEach(ForwardRange& range, Function function)
-{
-    ForEach(std::execution::seq, range, function);
-}
 
 template <typename StringContainer>
 SearchServer::SearchServer(const StringContainer& stop_words)
@@ -272,7 +231,8 @@ inline std::vector<Document> SearchServer::FindAllDocuments(std::execution::para
     ConcurrentMap<int, double> document_to_relevance(BUCKETS_N);
 
     std::vector<Document> matched_documents;
-    ForEach(policy, query.plus_words, [&](std::string_view word)
+    for_each(policy, query.plus_words.begin(), query.plus_words.end(),
+        [&](std::string_view word)
         {
             if (!word_to_document_freqs_.count(word) == 0)
             {
@@ -289,7 +249,8 @@ inline std::vector<Document> SearchServer::FindAllDocuments(std::execution::para
         }
     );
 
-    ForEach(policy, query.minus_words, [&](std::string_view word)
+    for_each(policy, query.minus_words.begin(), query.minus_words.end(),
+        [&](std::string_view word)
         {
             if (!word_to_document_freqs_.count(word) == 0)
             {
