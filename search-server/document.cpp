@@ -1,10 +1,10 @@
 #include "document.h"
 
 Document::Document(int id, double relevance, int rating)
-        : id(id)
-        , relevance(relevance)
-        , rating(rating) {
-    }
+    : id(id)
+    , relevance(relevance)
+    , rating(rating) {
+}
 
 std::ostream& operator<<(std::ostream& out, const Document& document) {
     using namespace std::string_literals;
@@ -14,3 +14,4 @@ std::ostream& operator<<(std::ostream& out, const Document& document) {
         << "rating = "s << document.rating << " }"s;
     return out;
 }
+

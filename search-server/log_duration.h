@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <iostream>
+#include <string_view>
 
 #define PROFILE_CONCAT_INTERNAL(X, Y) X##Y
 #define PROFILE_CONCAT(X, Y) PROFILE_CONCAT_INTERNAL(X, Y)
@@ -11,12 +12,13 @@
 
 class LogDuration {
 public:
-    // Р·Р°РјРµРЅРёРј РёРјСЏ С‚РёРїР° std::chrono::steady_clock
-    // СЃ РїРѕРјРѕС‰СЊСЋ using РґР»СЏ СѓРґРѕР±СЃС‚РІР°
+    // заменим имя типа std::chrono::steady_clock
+    // с помощью using для удобства
     using Clock = std::chrono::steady_clock;
 
-    LogDuration(const std::string& id, std::ostream& stream)
-        : id_(id), stream_(stream){
+    LogDuration(std::string_view id, std::ostream& dst_stream = std::cerr)
+        : id_(id)
+        , dst_stream_(dst_stream) {
     }
 
     ~LogDuration() {
@@ -25,11 +27,26 @@ public:
 
         const auto end_time = Clock::now();
         const auto dur = end_time - start_time_;
-        stream_ << id_ << ": "s << duration_cast<milliseconds>(dur).count() << " ms"s << std::endl;
+        dst_stream_ << id_ << ": "sv << duration_cast<milliseconds>(dur).count() << " ms"sv << std::endl;
     }
 
 private:
     const std::string id_;
     const Clock::time_point start_time_ = Clock::now();
-    std::ostream& stream_;
+    std::ostream& dst_stream_;
 };
+
+/*
+Correct function MergeSort in this code.It must slill use async computations. You can not use method wait() and other sort methods in MergeSort. Write improved code
+template void MergeSort(RandomIt range_begin, RandomIt range_end) {
+    int range_length = range_end - range_begin;
+    if (range_length < 2) { return; }
+    vector elements(range_begin, range_end);
+    auto mid = elements.begin() + range_length / 2;
+    auto future1 = async([&elements, &mid]() { MergeSort(elements.begin(), mid); });
+    auto future2 = async([&elements, &mid]() { MergeSort(mid, elements.end()); });
+    future1.wait();
+    future2.wait();
+    merge(elements.begin(), mid, mid, elements.end(), range_begin);
+}
+*/
