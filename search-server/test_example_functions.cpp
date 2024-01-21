@@ -20,9 +20,7 @@ void AssertImpl(bool value, const std::string& expr_str, const std::string& file
     }
 }
 
-// -------- Начало модульных тестов поисковой системы ----------
-
-// Тест проверяет, что поисковая система исключает стоп-слова при добавлении документов
+// РўРµСЃС‚ РїСЂРѕРІРµСЂСЏРµС‚, С‡С‚Рѕ РїРѕРёСЃРєРѕРІР°СЏ СЃРёСЃС‚РµРјР° РёСЃРєР»СЋС‡Р°РµС‚ СЃС‚РѕРї-СЃР»РѕРІР° РїСЂРё РґРѕР±Р°РІР»РµРЅРёРё РґРѕРєСѓРјРµРЅС‚РѕРІ 
 void TestExcludeStopWordsFromAddedDocumentContent() {
 
     const int doc_id = 42;
@@ -35,7 +33,7 @@ void TestExcludeStopWordsFromAddedDocumentContent() {
         SearchServer server("and in at"s);
         server.AddDocument(doc_id, content, DocumentStatus::ACTUAL, ratings);
         const auto found_docs = server.FindTopDocuments("in"s);
-        //Поиск по стоп слову не должен давать результатов
+        //РџРѕРёСЃРє РїРѕ СЃС‚РѕРї СЃР»РѕРІСѓ РЅРµ РґРѕР»Р¶РµРЅ РґР°РІР°С‚СЊ СЂРµР·СѓР»СЊС‚Р°С‚РѕРІ
         ASSERT_EQUAL(found_docs.size(), 0);
     }
 
@@ -45,10 +43,9 @@ void TestExcludeStopWordsFromAddedDocumentContent() {
         ASSERT_HINT(server.FindTopDocuments("in"s).empty(),
             "Stop words must be excluded from documents"s);
     }
-    // Проверка поиска отсутствующего слова и пустой строки
+    // РџСЂРѕРІРµСЂРєР° РїРѕРёСЃРєР° РѕС‚СЃСѓС‚СЃС‚РІСѓСЋС‰РµРіРѕ СЃР»РѕРІР° Рё РїСѓСЃС‚РѕР№ СЃС‚СЂРѕРєРё
     {
         SearchServer server("in the on"s);
-        //server.SetStopWords("in the on"s);
         server.AddDocument(doc_id, content, DocumentStatus::ACTUAL, ratings);
         server.AddDocument(doc_id_1, content_1, DocumentStatus::ACTUAL, ratings_1);
         ASSERT_HINT(server.FindTopDocuments("parrot"s).empty(),
@@ -59,8 +56,7 @@ void TestExcludeStopWordsFromAddedDocumentContent() {
 }
 
 void TestMinusWords() {
-    // Документы, содержащие минус слова не включаются в результат поиска
-
+    // Р”РѕРєСѓРјРµРЅС‚С‹, СЃРѕРґРµСЂР¶Р°С‰РёРµ РјРёРЅСѓСЃ СЃР»РѕРІР° РЅРµ РІРєР»СЋС‡Р°СЋС‚СЃСЏ РІ СЂРµР·СѓР»СЊС‚Р°С‚ РїРѕРёСЃРєР°
     {
         SearchServer server("in the on"s);
         server.AddDocument(0, "black cat in the city"s, DocumentStatus::ACTUAL, { 1, 2, 3 });
@@ -75,10 +71,9 @@ void TestMinusWords() {
 }
 
 void TestMatchDocuments() {
-    // Матчинг документов
+    // РњР°С‚С‡РёРЅРі РґРѕРєСѓРјРµРЅС‚РѕРІ
     {
         SearchServer server("in the on"s);
-        //server.SetStopWords("in the on"s);
         server.AddDocument(0, "black cat in the city"s, DocumentStatus::ACTUAL, { 1, 2, 3 });
         server.AddDocument(1, "black dog on the roof"s, DocumentStatus::ACTUAL, { 3, 2, 4 });
         server.AddDocument(2, "green frog in the big garden"s, DocumentStatus::ACTUAL, { 5, -1, 1 });
@@ -91,37 +86,35 @@ void TestMatchDocuments() {
 }
 
 void TestRelevanceSort() {
-    // Сортировка по релевантности
-
+    // РЎРѕСЂС‚РёСЂРѕРІРєР° РїРѕ СЂРµР»РµРІР°РЅС‚РЅРѕСЃС‚Рё
     {
-        SearchServer server("и в на"s);
-        //server.SetStopWords("и в на"s);
-        server.AddDocument(0, "белый кот и модный ошейник"s, DocumentStatus::ACTUAL, { 8, -3 });
-        server.AddDocument(1, "пушистый кот пушистый хвост"s, DocumentStatus::ACTUAL, { 7, 2, 7 });
-        server.AddDocument(2, "ухоженный пёс выразительные глаза"s, DocumentStatus::ACTUAL, { 5, -12, 2, 1 });
-        const auto documents = server.FindTopDocuments("пушистый ухоженный кот"s);
-        //Проверка на то, что возвращается не пустой вектор
+        SearchServer server("ГЁ Гў Г­Г "s);
+        server.AddDocument(0, "ГЎГҐГ«Г»Г© ГЄГ®ГІ ГЁ Г¬Г®Г¤Г­Г»Г© Г®ГёГҐГ©Г­ГЁГЄ"s, DocumentStatus::ACTUAL, { 8, -3 });
+        server.AddDocument(1, "ГЇГіГёГЁГ±ГІГ»Г© ГЄГ®ГІ ГЇГіГёГЁГ±ГІГ»Г© ГµГўГ®Г±ГІ"s, DocumentStatus::ACTUAL, { 7, 2, 7 });
+        server.AddDocument(2, "ГіГµГ®Г¦ГҐГ­Г­Г»Г© ГЇВёГ± ГўГ»Г°Г Г§ГЁГІГҐГ«ГјГ­Г»ГҐ ГЈГ«Г Г§Г "s, DocumentStatus::ACTUAL, { 5, -12, 2, 1 });
+        const auto documents = server.FindTopDocuments("ГЇГіГёГЁГ±ГІГ»Г© ГіГµГ®Г¦ГҐГ­Г­Г»Г© ГЄГ®ГІ"s);
+
         ASSERT_EQUAL_HINT(documents.size(), 3, "Non empty container should be returned"s);
-        //Преверяем правильную сортировку по релевантности путём сравнения полей relevance
+        //ГЏГ°ГҐГўГҐГ°ГїГҐГ¬ ГЇГ°Г ГўГЁГ«ГјГ­ГіГѕ Г±Г®Г°ГІГЁГ°Г®ГўГЄГі ГЇГ® Г°ГҐГ«ГҐГўГ Г­ГІГ­Г®Г±ГІГЁ ГЇГіГІВёГ¬ Г±Г°Г ГўГ­ГҐГ­ГЁГї ГЇГ®Г«ГҐГ© relevance
         ASSERT(documents[0].relevance > documents[1].relevance);
         ASSERT(documents[1].relevance > documents[2].relevance);
     }
 }
 
 void TestRatingCalculation() {
-    // Подсчёт рейтинга
+    // ГЏГ®Г¤Г±Г·ВёГІ Г°ГҐГ©ГІГЁГ­ГЈГ 
 
     {
-        SearchServer server("и в на"s);
-        //server.SetStopWords("и в на"s);
-        server.AddDocument(0, "белый кот и модный ошейник"s, DocumentStatus::ACTUAL, { 8, -3 });
-        server.AddDocument(1, "пушистый кот пушистый хвост"s, DocumentStatus::ACTUAL, { 7, 2, 7 });
-        server.AddDocument(2, "ухоженный пёс выразительные глаза"s, DocumentStatus::ACTUAL, { 5, -12, 2, 1 });
-        const auto documents = server.FindTopDocuments("пушистый ухоженный кот"s);
-        //Проверка на то, что возвращается не пустой вектор
+        SearchServer server("ГЁ Гў Г­Г "s);
+        //server.SetStopWords("ГЁ Гў Г­Г "s);
+        server.AddDocument(0, "ГЎГҐГ«Г»Г© ГЄГ®ГІ ГЁ Г¬Г®Г¤Г­Г»Г© Г®ГёГҐГ©Г­ГЁГЄ"s, DocumentStatus::ACTUAL, { 8, -3 });
+        server.AddDocument(1, "ГЇГіГёГЁГ±ГІГ»Г© ГЄГ®ГІ ГЇГіГёГЁГ±ГІГ»Г© ГµГўГ®Г±ГІ"s, DocumentStatus::ACTUAL, { 7, 2, 7 });
+        server.AddDocument(2, "ГіГµГ®Г¦ГҐГ­Г­Г»Г© ГЇВёГ± ГўГ»Г°Г Г§ГЁГІГҐГ«ГјГ­Г»ГҐ ГЈГ«Г Г§Г "s, DocumentStatus::ACTUAL, { 5, -12, 2, 1 });
+        const auto documents = server.FindTopDocuments("ГЇГіГёГЁГ±ГІГ»Г© ГіГµГ®Г¦ГҐГ­Г­Г»Г© ГЄГ®ГІ"s);
+        //ГЏГ°Г®ГўГҐГ°ГЄГ  Г­Г  ГІГ®, Г·ГІГ® ГўГ®Г§ГўГ°Г Г№Г ГҐГІГ±Гї Г­ГҐ ГЇГіГ±ГІГ®Г© ГўГҐГЄГІГ®Г°
         ASSERT_EQUAL_HINT(documents.size(), 3, "Non empty container should be returned"s);
-        //Проверяем правльный расчёт рейтинга
-        //Складываем все значения вектора и делим на количество элементов (размер вектора)
+        //ГЏГ°Г®ГўГҐГ°ГїГҐГ¬ ГЇГ°Г ГўГ«ГјГ­Г»Г© Г°Г Г±Г·ВёГІ Г°ГҐГ©ГІГЁГ­ГЈГ 
+        //Г‘ГЄГ«Г Г¤Г»ГўГ ГҐГ¬ ГўГ±ГҐ Г§Г­Г Г·ГҐГ­ГЁГї ГўГҐГЄГІГ®Г°Г  ГЁ Г¤ГҐГ«ГЁГ¬ Г­Г  ГЄГ®Г«ГЁГ·ГҐГ±ГІГўГ® ГЅГ«ГҐГ¬ГҐГ­ГІГ®Гў (Г°Г Г§Г¬ГҐГ° ГўГҐГЄГІГ®Г°Г )
         ASSERT_EQUAL(documents[0].rating, ((7 + 2 + 7) / 3));
         ASSERT_EQUAL(documents[1].rating, ((5 + (-12) + 2 + 1) / 4));
         ASSERT_EQUAL(documents[2].rating, ((8 + (-3)) / 2));
@@ -129,169 +122,258 @@ void TestRatingCalculation() {
 }
 
 void TestPredicate() {
-    // Тест предиката
+    // Г’ГҐГ±ГІ ГЇГ°ГҐГ¤ГЁГЄГ ГІГ 
 
     {
-        SearchServer server("и в на"s);
-        //server.SetStopWords("и в на"s);
-        server.AddDocument(0, "белый кот и модный ошейник"s, DocumentStatus::ACTUAL, { 8, -3 });
-        server.AddDocument(1, "пушистый кот пушистый хвост"s, DocumentStatus::ACTUAL, { 7, 2, 7 });
-        server.AddDocument(2, "ухоженный пёс выразительные глаза"s, DocumentStatus::ACTUAL, { 5, -12, 2, 1 });
-        server.AddDocument(3, "ухоженный скворец евгений"s, DocumentStatus::BANNED, { 9 });
-        const auto documents = server.FindTopDocuments("пушистый ухоженный кот"s);
-        //Проверка на то, что возвращается не пустой вектор
+        SearchServer server("ГЁ Гў Г­Г "s);
+        //server.SetStopWords("ГЁ Гў Г­Г "s);
+        server.AddDocument(0, "ГЎГҐГ«Г»Г© ГЄГ®ГІ ГЁ Г¬Г®Г¤Г­Г»Г© Г®ГёГҐГ©Г­ГЁГЄ"s, DocumentStatus::ACTUAL, { 8, -3 });
+        server.AddDocument(1, "ГЇГіГёГЁГ±ГІГ»Г© ГЄГ®ГІ ГЇГіГёГЁГ±ГІГ»Г© ГµГўГ®Г±ГІ"s, DocumentStatus::ACTUAL, { 7, 2, 7 });
+        server.AddDocument(2, "ГіГµГ®Г¦ГҐГ­Г­Г»Г© ГЇВёГ± ГўГ»Г°Г Г§ГЁГІГҐГ«ГјГ­Г»ГҐ ГЈГ«Г Г§Г "s, DocumentStatus::ACTUAL, { 5, -12, 2, 1 });
+        server.AddDocument(3, "ГіГµГ®Г¦ГҐГ­Г­Г»Г© Г±ГЄГўГ®Г°ГҐГ¶ ГҐГўГЈГҐГ­ГЁГ©"s, DocumentStatus::BANNED, { 9 });
+        const auto documents = server.FindTopDocuments("ГЇГіГёГЁГ±ГІГ»Г© ГіГµГ®Г¦ГҐГ­Г­Г»Г© ГЄГ®ГІ"s);
+        //ГЏГ°Г®ГўГҐГ°ГЄГ  Г­Г  ГІГ®, Г·ГІГ® ГўГ®Г§ГўГ°Г Г№Г ГҐГІГ±Гї Г­ГҐ ГЇГіГ±ГІГ®Г© ГўГҐГЄГІГ®Г°
         ASSERT_EQUAL_HINT(documents.size(), 3, "Non empty container should be returned"s);
         ASSERT_EQUAL(documents[0].id, 1);
         ASSERT_EQUAL(documents[1].id, 0);
         ASSERT_EQUAL(documents[2].id, 2);
-        const auto documents_1 = server.FindTopDocuments("пушистый ухоженный кот"s, DocumentStatus::BANNED);
-        //Проверка на то, что возвращается не пустой вектор
+        const auto documents_1 = server.FindTopDocuments("ГЇГіГёГЁГ±ГІГ»Г© ГіГµГ®Г¦ГҐГ­Г­Г»Г© ГЄГ®ГІ"s, DocumentStatus::BANNED);
+        //ГЏГ°Г®ГўГҐГ°ГЄГ  Г­Г  ГІГ®, Г·ГІГ® ГўГ®Г§ГўГ°Г Г№Г ГҐГІГ±Гї Г­ГҐ ГЇГіГ±ГІГ®Г© ГўГҐГЄГІГ®Г°
         ASSERT_EQUAL_HINT(documents_1.size(), 1, "Non empty container should be returned"s);
         ASSERT_EQUAL(documents_1[0].id, 3);
-        const auto documents_2 = server.FindTopDocuments("пушистый ухоженный кот"s, [](int document_id, DocumentStatus status, int rating) { return document_id % 2 == 0; });
-        //Проверка на то, что возвращается не пустой вектор
+        const auto documents_2 = server.FindTopDocuments("ГЇГіГёГЁГ±ГІГ»Г© ГіГµГ®Г¦ГҐГ­Г­Г»Г© ГЄГ®ГІ"s, [](int document_id, DocumentStatus status, int rating) { return document_id % 2 == 0; });
+        //ГЏГ°Г®ГўГҐГ°ГЄГ  Г­Г  ГІГ®, Г·ГІГ® ГўГ®Г§ГўГ°Г Г№Г ГҐГІГ±Гї Г­ГҐ ГЇГіГ±ГІГ®Г© ГўГҐГЄГІГ®Г°
         ASSERT_EQUAL_HINT(documents_2.size(), 2, "Non empty container should be returned"s);
         ASSERT_EQUAL(documents_2[0].id, 0);
         ASSERT_EQUAL(documents_2[1].id, 2);
     }
 }
 void TestStatusSearch() {
-    // Тест поиска по статусу
+    // Г’ГҐГ±ГІ ГЇГ®ГЁГ±ГЄГ  ГЇГ® Г±ГІГ ГІГіГ±Гі
 
     {
-        SearchServer server("и в на"s);
-        //server.SetStopWords("и в на"s);
-        server.AddDocument(0, "белый кот и модный ошейник"s, DocumentStatus::ACTUAL, { 8, -3 });
-        server.AddDocument(1, "белый кот и модный ошейник"s, DocumentStatus::IRRELEVANT, { 7, 2, 7 });
-        server.AddDocument(2, "белый кот и модный ошейник"s, DocumentStatus::BANNED, { 5, -12, 2, 1 });
-        server.AddDocument(3, "белый кот и модный ошейник"s, DocumentStatus::REMOVED, { 9 });
-        const auto documents = server.FindTopDocuments("пушистый ухоженный кот"s, DocumentStatus::ACTUAL);
-        //Проверка на то, что возвращается не пустой вектор
+        SearchServer server("ГЁ Гў Г­Г "s);
+        //server.SetStopWords("ГЁ Гў Г­Г "s);
+        server.AddDocument(0, "ГЎГҐГ«Г»Г© ГЄГ®ГІ ГЁ Г¬Г®Г¤Г­Г»Г© Г®ГёГҐГ©Г­ГЁГЄ"s, DocumentStatus::ACTUAL, { 8, -3 });
+        server.AddDocument(1, "ГЎГҐГ«Г»Г© ГЄГ®ГІ ГЁ Г¬Г®Г¤Г­Г»Г© Г®ГёГҐГ©Г­ГЁГЄ"s, DocumentStatus::IRRELEVANT, { 7, 2, 7 });
+        server.AddDocument(2, "ГЎГҐГ«Г»Г© ГЄГ®ГІ ГЁ Г¬Г®Г¤Г­Г»Г© Г®ГёГҐГ©Г­ГЁГЄ"s, DocumentStatus::BANNED, { 5, -12, 2, 1 });
+        server.AddDocument(3, "ГЎГҐГ«Г»Г© ГЄГ®ГІ ГЁ Г¬Г®Г¤Г­Г»Г© Г®ГёГҐГ©Г­ГЁГЄ"s, DocumentStatus::REMOVED, { 9 });
+        const auto documents = server.FindTopDocuments("ГЇГіГёГЁГ±ГІГ»Г© ГіГµГ®Г¦ГҐГ­Г­Г»Г© ГЄГ®ГІ"s, DocumentStatus::ACTUAL);
+        //ГЏГ°Г®ГўГҐГ°ГЄГ  Г­Г  ГІГ®, Г·ГІГ® ГўГ®Г§ГўГ°Г Г№Г ГҐГІГ±Гї Г­ГҐ ГЇГіГ±ГІГ®Г© ГўГҐГЄГІГ®Г°
         ASSERT_EQUAL_HINT(documents.size(), 1, "Non empty container should be returned"s);
         ASSERT_EQUAL(documents[0].id, 0);
-        const auto documents_1 = server.FindTopDocuments("пушистый ухоженный кот"s, DocumentStatus::IRRELEVANT);
-        //Проверка на то, что возвращается не пустой вектор
+        const auto documents_1 = server.FindTopDocuments("ГЇГіГёГЁГ±ГІГ»Г© ГіГµГ®Г¦ГҐГ­Г­Г»Г© ГЄГ®ГІ"s, DocumentStatus::IRRELEVANT);
+        //ГЏГ°Г®ГўГҐГ°ГЄГ  Г­Г  ГІГ®, Г·ГІГ® ГўГ®Г§ГўГ°Г Г№Г ГҐГІГ±Гї Г­ГҐ ГЇГіГ±ГІГ®Г© ГўГҐГЄГІГ®Г°
         ASSERT_EQUAL_HINT(documents_1.size(), 1, "Non empty container should be returned"s);
         ASSERT_EQUAL(documents_1[0].id, 1);
-        const auto documents_2 = server.FindTopDocuments("пушистый ухоженный кот"s, DocumentStatus::BANNED);
-        //Проверка на то, что возвращается не пустой вектор
+        const auto documents_2 = server.FindTopDocuments("ГЇГіГёГЁГ±ГІГ»Г© ГіГµГ®Г¦ГҐГ­Г­Г»Г© ГЄГ®ГІ"s, DocumentStatus::BANNED);
+        //ГЏГ°Г®ГўГҐГ°ГЄГ  Г­Г  ГІГ®, Г·ГІГ® ГўГ®Г§ГўГ°Г Г№Г ГҐГІГ±Гї Г­ГҐ ГЇГіГ±ГІГ®Г© ГўГҐГЄГІГ®Г°
         ASSERT_EQUAL_HINT(documents_2.size(), 1, "Non empty container should be returned"s);
         ASSERT_EQUAL(documents_2[0].id, 2);
-        const auto documents_3 = server.FindTopDocuments("пушистый ухоженный кот"s, DocumentStatus::REMOVED);
-        //Проверка на то, что возвращается не пустой вектор
+        const auto documents_3 = server.FindTopDocuments("ГЇГіГёГЁГ±ГІГ»Г© ГіГµГ®Г¦ГҐГ­Г­Г»Г© ГЄГ®ГІ"s, DocumentStatus::REMOVED);
+        //ГЏГ°Г®ГўГҐГ°ГЄГ  Г­Г  ГІГ®, Г·ГІГ® ГўГ®Г§ГўГ°Г Г№Г ГҐГІГ±Гї Г­ГҐ ГЇГіГ±ГІГ®Г© ГўГҐГЄГІГ®Г°
         ASSERT_EQUAL_HINT(documents_3.size(), 1, "Non empty container should be returned"s);
         ASSERT_EQUAL(documents_3[0].id, 3);
     }
 }
-//Примечание для ревьюера: тут можно использовать глобальную переменную THRESHOLD, но тренажер ругается на это
-void TestRelevanceCalculation() {
-    // Подсчёт релевантности
+void TestRelevanceSort() { 
+    // РЎРѕСЂС‚РёСЂРѕРІРєР° РїРѕ СЂРµР»РµРІР°РЅС‚РЅРѕСЃС‚Рё 
+ 
+    { 
+        SearchServer server("Рё РІ РЅР°"s); 
+        //server.SetStopWords("Рё РІ РЅР°"s); 
+        server.AddDocument(0, "Р±РµР»С‹Р№ РєРѕС‚ Рё РјРѕРґРЅС‹Р№ РѕС€РµР№РЅРёРє"s, DocumentStatus::ACTUAL, { 8, -3 }); 
+        server.AddDocument(1, "РїСѓС€РёСЃС‚С‹Р№ РєРѕС‚ РїСѓС€РёСЃС‚С‹Р№ С…РІРѕСЃС‚"s, DocumentStatus::ACTUAL, { 7, 2, 7 }); 
+        server.AddDocument(2, "СѓС…РѕР¶РµРЅРЅС‹Р№ РїС‘СЃ РІС‹СЂР°Р·РёС‚РµР»СЊРЅС‹Рµ РіР»Р°Р·Р°"s, DocumentStatus::ACTUAL, { 5, -12, 2, 1 }); 
+        const auto documents = server.FindTopDocuments("РїСѓС€РёСЃС‚С‹Р№ СѓС…РѕР¶РµРЅРЅС‹Р№ РєРѕС‚"s); 
+        //РџСЂРѕРІРµСЂРєР° РЅР° С‚Рѕ, С‡С‚Рѕ РІРѕР·РІСЂР°С‰Р°РµС‚СЃСЏ РЅРµ РїСѓСЃС‚РѕР№ РІРµРєС‚РѕСЂ 
+        ASSERT_EQUAL_HINT(documents.size(), 3, "Non empty container should be returned"s); 
+        //РџСЂРµРІРµСЂСЏРµРј РїСЂР°РІРёР»СЊРЅСѓСЋ СЃРѕСЂС‚РёСЂРѕРІРєСѓ РїРѕ СЂРµР»РµРІР°РЅС‚РЅРѕСЃС‚Рё РїСѓС‚С‘Рј СЃСЂР°РІРЅРµРЅРёСЏ РїРѕР»РµР№ relevance 
+        ASSERT(documents[0].relevance > documents[1].relevance); 
+        ASSERT(documents[1].relevance > documents[2].relevance); 
+    } 
+} 
+ 
+void TestRatingCalculation() { 
+    // РџРѕРґСЃС‡С‘С‚ СЂРµР№С‚РёРЅРіР° 
+ 
+    { 
+        SearchServer server("Рё РІ РЅР°"s); 
+        //server.SetStopWords("Рё РІ РЅР°"s); 
+        server.AddDocument(0, "Р±РµР»С‹Р№ РєРѕС‚ Рё РјРѕРґРЅС‹Р№ РѕС€РµР№РЅРёРє"s, DocumentStatus::ACTUAL, { 8, -3 }); 
+        server.AddDocument(1, "РїСѓС€РёСЃС‚С‹Р№ РєРѕС‚ РїСѓС€РёСЃС‚С‹Р№ С…РІРѕСЃС‚"s, DocumentStatus::ACTUAL, { 7, 2, 7 }); 
+        server.AddDocument(2, "СѓС…РѕР¶РµРЅРЅС‹Р№ РїС‘СЃ РІС‹СЂР°Р·РёС‚РµР»СЊРЅС‹Рµ РіР»Р°Р·Р°"s, DocumentStatus::ACTUAL, { 5, -12, 2, 1 }); 
+        const auto documents = server.FindTopDocuments("РїСѓС€РёСЃС‚С‹Р№ СѓС…РѕР¶РµРЅРЅС‹Р№ РєРѕС‚"s); 
+        //РџСЂРѕРІРµСЂРєР° РЅР° С‚Рѕ, С‡С‚Рѕ РІРѕР·РІСЂР°С‰Р°РµС‚СЃСЏ РЅРµ РїСѓСЃС‚РѕР№ РІРµРєС‚РѕСЂ 
+        ASSERT_EQUAL_HINT(documents.size(), 3, "Non empty container should be returned"s); 
+        //РџСЂРѕРІРµСЂСЏРµРј РїСЂР°РІР»СЊРЅС‹Р№ СЂР°СЃС‡С‘С‚ СЂРµР№С‚РёРЅРіР° 
+        //РЎРєР»Р°РґС‹РІР°РµРј РІСЃРµ Р·РЅР°С‡РµРЅРёСЏ РІРµРєС‚РѕСЂР° Рё РґРµР»РёРј РЅР° РєРѕР»РёС‡РµСЃС‚РІРѕ СЌР»РµРјРµРЅС‚РѕРІ (СЂР°Р·РјРµСЂ РІРµРєС‚РѕСЂР°) 
+        ASSERT_EQUAL(documents[0].rating, ((7 + 2 + 7) / 3)); 
+        ASSERT_EQUAL(documents[1].rating, ((5 + (-12) + 2 + 1) / 4)); 
+        ASSERT_EQUAL(documents[2].rating, ((8 + (-3)) / 2)); 
+    } 
+} 
+ 
+void TestPredicate() { 
+    // РўРµСЃС‚ РїСЂРµРґРёРєР°С‚Р° 
+ 
+    { 
+        SearchServer server("Рё РІ РЅР°"s); 
+        //server.SetStopWords("Рё РІ РЅР°"s); 
+        server.AddDocument(0, "Р±РµР»С‹Р№ РєРѕС‚ Рё РјРѕРґРЅС‹Р№ РѕС€РµР№РЅРёРє"s, DocumentStatus::ACTUAL, { 8, -3 }); 
+        server.AddDocument(1, "РїСѓС€РёСЃС‚С‹Р№ РєРѕС‚ РїСѓС€РёСЃС‚С‹Р№ С…РІРѕСЃС‚"s, DocumentStatus::ACTUAL, { 7, 2, 7 }); 
+        server.AddDocument(2, "СѓС…РѕР¶РµРЅРЅС‹Р№ РїС‘СЃ РІС‹СЂР°Р·РёС‚РµР»СЊРЅС‹Рµ РіР»Р°Р·Р°"s, DocumentStatus::ACTUAL, { 5, -12, 2, 1 }); 
+        server.AddDocument(3, "СѓС…РѕР¶РµРЅРЅС‹Р№ СЃРєРІРѕСЂРµС† РµРІРіРµРЅРёР№"s, DocumentStatus::BANNED, { 9 }); 
+        const auto documents = server.FindTopDocuments("РїСѓС€РёСЃС‚С‹Р№ СѓС…РѕР¶РµРЅРЅС‹Р№ РєРѕС‚"s); 
+        //РџСЂРѕРІРµСЂРєР° РЅР° С‚Рѕ, С‡С‚Рѕ РІРѕР·РІСЂР°С‰Р°РµС‚СЃСЏ РЅРµ РїСѓСЃС‚РѕР№ РІРµРєС‚РѕСЂ 
+        ASSERT_EQUAL_HINT(documents.size(), 3, "Non empty container should be returned"s); 
+        ASSERT_EQUAL(documents[0].id, 1); 
+        ASSERT_EQUAL(documents[1].id, 0); 
+        ASSERT_EQUAL(documents[2].id, 2); 
+        const auto documents_1 = server.FindTopDocuments("РїСѓС€РёСЃС‚С‹Р№ СѓС…РѕР¶РµРЅРЅС‹Р№ РєРѕС‚"s, DocumentStatus::BANNED); 
+        //РџСЂРѕРІРµСЂРєР° РЅР° С‚Рѕ, С‡С‚Рѕ РІРѕР·РІСЂР°С‰Р°РµС‚СЃСЏ РЅРµ РїСѓСЃС‚РѕР№ РІРµРєС‚РѕСЂ 
+        ASSERT_EQUAL_HINT(documents_1.size(), 1, "Non empty container should be returned"s); 
+        ASSERT_EQUAL(documents_1[0].id, 3); 
+        const auto documents_2 = server.FindTopDocuments("РїСѓС€РёСЃС‚С‹Р№ СѓС…РѕР¶РµРЅРЅС‹Р№ РєРѕС‚"s, [](int document_id, DocumentStatus status, int rating) { return document_id % 2 == 0; }); 
+        //РџСЂРѕРІРµСЂРєР° РЅР° С‚Рѕ, С‡С‚Рѕ РІРѕР·РІСЂР°С‰Р°РµС‚СЃСЏ РЅРµ РїСѓСЃС‚РѕР№ РІРµРєС‚РѕСЂ 
+        ASSERT_EQUAL_HINT(documents_2.size(), 2, "Non empty container should be returned"s); 
+        ASSERT_EQUAL(documents_2[0].id, 0); 
+        ASSERT_EQUAL(documents_2[1].id, 2); 
+    } 
+} 
+void TestStatusSearch() { 
+    // РўРµСЃС‚ РїРѕРёСЃРєР° РїРѕ СЃС‚Р°С‚СѓСЃСѓ
+    { 
+        SearchServer server("Рё РІ РЅР°"s); 
+        //server.SetStopWords("Рё РІ РЅР°"s); 
+        server.AddDocument(0, "Р±РµР»С‹Р№ РєРѕС‚ Рё РјРѕРґРЅС‹Р№ РѕС€РµР№РЅРёРє"s, DocumentStatus::ACTUAL, { 8, -3 }); 
+        server.AddDocument(1, "Р±РµР»С‹Р№ РєРѕС‚ Рё РјРѕРґРЅС‹Р№ РѕС€РµР№РЅРёРє"s, DocumentStatus::IRRELEVANT, { 7, 2, 7 }); 
+        server.AddDocument(2, "Р±РµР»С‹Р№ РєРѕС‚ Рё РјРѕРґРЅС‹Р№ РѕС€РµР№РЅРёРє"s, DocumentStatus::BANNED, { 5, -12, 2, 1 }); 
+        server.AddDocument(3, "Р±РµР»С‹Р№ РєРѕС‚ Рё РјРѕРґРЅС‹Р№ РѕС€РµР№РЅРёРє"s, DocumentStatus::REMOVED, { 9 }); 
+        const auto documents = server.FindTopDocuments("РїСѓС€РёСЃС‚С‹Р№ СѓС…РѕР¶РµРЅРЅС‹Р№ РєРѕС‚"s, DocumentStatus::ACTUAL); 
+        //РџСЂРѕРІРµСЂРєР° РЅР° С‚Рѕ, С‡С‚Рѕ РІРѕР·РІСЂР°С‰Р°РµС‚СЃСЏ РЅРµ РїСѓСЃС‚РѕР№ РІРµРєС‚РѕСЂ 
+        ASSERT_EQUAL_HINT(documents.size(), 1, "Non empty container should be returned"s); 
+        ASSERT_EQUAL(documents[0].id, 0); 
+        const auto documents_1 = server.FindTopDocuments("РїСѓС€РёСЃС‚С‹Р№ СѓС…РѕР¶РµРЅРЅС‹Р№ РєРѕС‚"s, DocumentStatus::IRRELEVANT); 
+        //РџСЂРѕРІРµСЂРєР° РЅР° С‚Рѕ, С‡С‚Рѕ РІРѕР·РІСЂР°С‰Р°РµС‚СЃСЏ РЅРµ РїСѓСЃС‚РѕР№ РІРµРєС‚РѕСЂ 
+        ASSERT_EQUAL_HINT(documents_1.size(), 1, "Non empty container should be returned"s); 
+        ASSERT_EQUAL(documents_1[0].id, 1); 
+        const auto documents_2 = server.FindTopDocuments("РїСѓС€РёСЃС‚С‹Р№ СѓС…РѕР¶РµРЅРЅС‹Р№ РєРѕС‚"s, DocumentStatus::BANNED); 
+        //РџСЂРѕРІРµСЂРєР° РЅР° С‚Рѕ, С‡С‚Рѕ РІРѕР·РІСЂР°С‰Р°РµС‚СЃСЏ РЅРµ РїСѓСЃС‚РѕР№ РІРµРєС‚РѕСЂ 
+        ASSERT_EQUAL_HINT(documents_2.size(), 1, "Non empty container should be returned"s); 
+        ASSERT_EQUAL(documents_2[0].id, 2); 
+        const auto documents_3 = server.FindTopDocuments("РїСѓС€РёСЃС‚С‹Р№ СѓС…РѕР¶РµРЅРЅС‹Р№ РєРѕС‚"s, DocumentStatus::REMOVED); 
+        //РџСЂРѕРІРµСЂРєР° РЅР° С‚Рѕ, С‡С‚Рѕ РІРѕР·РІСЂР°С‰Р°РµС‚СЃСЏ РЅРµ РїСѓСЃС‚РѕР№ РІРµРєС‚РѕСЂ 
+        ASSERT_EQUAL_HINT(documents_3.size(), 1, "Non empty container should be returned"s); 
+        ASSERT_EQUAL(documents_3[0].id, 3); 
+    } 
+} 
 
-    {
-        SearchServer server("и в на"s);
-        //server.SetStopWords("и в на"s);
-        server.AddDocument(0, "белый кот и модный ошейник"s, DocumentStatus::ACTUAL, { 8, -3 });
-        server.AddDocument(1, "пушистый кот пушистый хвост"s, DocumentStatus::ACTUAL, { 7, 2, 7 });
-        server.AddDocument(2, "ухоженный пёс выразительные глаза"s, DocumentStatus::ACTUAL, { 5, -12, 2, 1 });
-        const auto documents = server.FindTopDocuments("пушистый ухоженный кот"s);
-        //Проверка на то, что возвращается не пустой вектор
-        ASSERT_EQUAL_HINT(documents.size(), 3, "Non empty container should be returned"s);
-        //Формула для вычисления IDF: log(GetDocumentCount() * 1.0 / word_to_document_freqs_.at(word).size());
-        // Количество документов - 3
-        // TF слова пушистый во втором документе составляет 2/4=0.5
-        // TF слова ухоженный в третьем документе составляет 1/4=0.25
-        // TF слова кот в первом и втором документах составляет 0.25 и 0.25
-        // В скольких документах встречается каждое слово из поиска:
-        // Пушистый - 1; Ухоженный - 1; Кот - 2
-        ASSERT(abs(documents[0].relevance - (0.5 * log(3 * 1.0 / 1) + 0.25 * log(3 * 1.0 / 2))) < 1e-6);
-        ASSERT(abs(documents[1].relevance - (0.25 * log(3 * 1.0 / 1))) < 1e-6);
-        ASSERT(abs(documents[2].relevance - (0.25 * log(3 * 1.0 / 2))) < 1e-6);
-    }
-}
-void TestRequestQueue() {
-    SearchServer search_server("and in at"s);
-    RequestQueue request_queue(search_server);
-    search_server.AddDocument(1, "curly cat curly tail"s, DocumentStatus::ACTUAL, { 7, 2, 7 });
-    search_server.AddDocument(2, "curly dog and fancy collar"s, DocumentStatus::ACTUAL, { 1, 2, 3 });
-    search_server.AddDocument(3, "big cat fancy collar "s, DocumentStatus::ACTUAL, { 1, 2, 8 });
-    search_server.AddDocument(4, "big dog sparrow Eugene"s, DocumentStatus::ACTUAL, { 1, 3, 2 });
-    search_server.AddDocument(5, "big dog sparrow Vasiliy"s, DocumentStatus::ACTUAL, { 1, 1, 1 });
-    // 1439 запросов с нулевым результатом
-    for (int i = 0; i < 1439; ++i) {
-        request_queue.AddFindRequest("empty request"s);
-    }
-    // Стало 1440 запросов: 1439 пустых запросов и 1 непустой
-    request_queue.AddFindRequest("curly dog"s);
-    // новые сутки, первый запрос удален, 1438 запросов с нулевым результатом и 2 непустых
-    request_queue.AddFindRequest("big collar"s);
-    // первый запрос удален, 1437 запросов с нулевым результатом и 3 непустых
-    request_queue.AddFindRequest("sparrow"s);
-    //Проверяем, что пустых запросов действительно 1437
-    ASSERT_EQUAL(request_queue.GetNoResultRequests(), 1437);
-    //Добавим 1444 непустых запросов
-    for (int i = 0; i < 1444; ++i) {
-        request_queue.AddFindRequest("dog"s);
-    }
-    //Пустых запросов должно стать 0
-    ASSERT_EQUAL(request_queue.GetNoResultRequests(), 0);
-}
-void TestRemoveDuplicates() {
-    SearchServer search_server("and with"s);
-
-    search_server.AddDocument(1, "funny pet and nasty rat"s, DocumentStatus::ACTUAL, { 7, 2, 7 });
-    search_server.AddDocument(2, "funny pet with curly hair"s, DocumentStatus::ACTUAL, { 1, 2 });
-
-    // дубликат документа 2, будет удалён
-    search_server.AddDocument(3, "funny pet with curly hair"s, DocumentStatus::ACTUAL, { 1, 2 });
-
-    // отличие только в стоп-словах, считаем дубликатом
-    search_server.AddDocument(4, "funny pet and curly hair"s, DocumentStatus::ACTUAL, { 1, 2 });
-
-    // множество слов такое же, считаем дубликатом документа 1
-    search_server.AddDocument(5, "funny funny pet and nasty nasty rat"s, DocumentStatus::ACTUAL, { 1, 2 });
-
-    // добавились новые слова, дубликатом не является
-    search_server.AddDocument(6, "funny pet and not very nasty rat"s, DocumentStatus::ACTUAL, { 1, 2 });
-
-    // множество слов такое же, как в id 6, несмотря на другой порядок, считаем дубликатом
-    search_server.AddDocument(7, "very nasty rat and not very funny pet"s, DocumentStatus::ACTUAL, { 1, 2 });
-
-    // есть не все слова, не является дубликатом
-    search_server.AddDocument(8, "pet with rat and rat and rat"s, DocumentStatus::ACTUAL, { 1, 2 });
-
-    // слова из разных документов, не является дубликатом
-    search_server.AddDocument(9, "nasty rat with curly hair"s, DocumentStatus::ACTUAL, { 1, 2 });
-
-    //Проверяем сколько документов содержится до очистки
-    ASSERT_EQUAL(search_server.GetDocumentCount(), 9);
-
-    //Удаляем дубликаты
-    RemoveDuplicates(search_server);
-
-    //Проверяем сколько документов содержится после очистки
-    ASSERT_EQUAL(search_server.GetDocumentCount(), 5);
-
-    //Проверим, что удалились и остались правильные дакументы
-    auto documents = search_server.FindTopDocuments("nasty rat with curly hair");
-    ASSERT_EQUAL(documents.size(), 5);
-    ASSERT_EQUAL(documents[0].id, 9);
-    ASSERT_EQUAL(documents[1].id, 2);
-    ASSERT_EQUAL(documents[2].id, 1);
-    ASSERT_EQUAL(documents[3].id, 8);
-    ASSERT_EQUAL(documents[4].id, 6);
-}
-// Функция TestSearchServer является точкой входа для запуска тестов
-void TestSearchServer() {
-    RUN_TEST(TestExcludeStopWordsFromAddedDocumentContent);
-    RUN_TEST(TestMinusWords);
-    RUN_TEST(TestMatchDocuments);
-    RUN_TEST(TestRelevanceSort);
-    RUN_TEST(TestRatingCalculation);
-    RUN_TEST(TestPredicate);
-    RUN_TEST(TestStatusSearch);
-    RUN_TEST(TestRelevanceCalculation);
-    RUN_TEST(TestRequestQueue);
-    RUN_TEST(TestRemoveDuplicates);
-}
-
-// --------- Окончание модульных тестов поисковой системы -----------
+void TestRelevanceCalculation() { 
+    // РџРѕРґСЃС‡С‘С‚ СЂРµР»РµРІР°РЅС‚РЅРѕСЃС‚Рё
+    { 
+        SearchServer server("Рё РІ РЅР°"s); 
+        //server.SetStopWords("Рё РІ РЅР°"s); 
+        server.AddDocument(0, "Р±РµР»С‹Р№ РєРѕС‚ Рё РјРѕРґРЅС‹Р№ РѕС€РµР№РЅРёРє"s, DocumentStatus::ACTUAL, { 8, -3 }); 
+        server.AddDocument(1, "РїСѓС€РёСЃС‚С‹Р№ РєРѕС‚ РїСѓС€РёСЃС‚С‹Р№ С…РІРѕСЃС‚"s, DocumentStatus::ACTUAL, { 7, 2, 7 }); 
+        server.AddDocument(2, "СѓС…РѕР¶РµРЅРЅС‹Р№ РїС‘СЃ РІС‹СЂР°Р·РёС‚РµР»СЊРЅС‹Рµ РіР»Р°Р·Р°"s, DocumentStatus::ACTUAL, { 5, -12, 2, 1 }); 
+        const auto documents = server.FindTopDocuments("РїСѓС€РёСЃС‚С‹Р№ СѓС…РѕР¶РµРЅРЅС‹Р№ РєРѕС‚"s); 
+        //РџСЂРѕРІРµСЂРєР° РЅР° С‚Рѕ, С‡С‚Рѕ РІРѕР·РІСЂР°С‰Р°РµС‚СЃСЏ РЅРµ РїСѓСЃС‚РѕР№ РІРµРєС‚РѕСЂ 
+        ASSERT_EQUAL_HINT(documents.size(), 3, "Non empty container should be returned"s); 
+        //Р¤РѕСЂРјСѓР»Р° РґР»СЏ РІС‹С‡РёСЃР»РµРЅРёСЏ IDF: log(GetDocumentCount() * 1.0 / word_to_document_freqs_.at(word).size()); 
+        // РљРѕР»РёС‡РµСЃС‚РІРѕ РґРѕРєСѓРјРµРЅС‚РѕРІ - 3 
+        // TF СЃР»РѕРІР° РїСѓС€РёСЃС‚С‹Р№ РІРѕ РІС‚РѕСЂРѕРј РґРѕРєСѓРјРµРЅС‚Рµ СЃРѕСЃС‚Р°РІР»СЏРµС‚ 2/4=0.5 
+        // TF СЃР»РѕРІР° СѓС…РѕР¶РµРЅРЅС‹Р№ РІ С‚СЂРµС‚СЊРµРј РґРѕРєСѓРјРµРЅС‚Рµ СЃРѕСЃС‚Р°РІР»СЏРµС‚ 1/4=0.25 
+        // TF СЃР»РѕРІР° РєРѕС‚ РІ РїРµСЂРІРѕРј Рё РІС‚РѕСЂРѕРј РґРѕРєСѓРјРµРЅС‚Р°С… СЃРѕСЃС‚Р°РІР»СЏРµС‚ 0.25 Рё 0.25 
+        // Р’ СЃРєРѕР»СЊРєРёС… РґРѕРєСѓРјРµРЅС‚Р°С… РІСЃС‚СЂРµС‡Р°РµС‚СЃСЏ РєР°Р¶РґРѕРµ СЃР»РѕРІРѕ РёР· РїРѕРёСЃРєР°: 
+        // РџСѓС€РёСЃС‚С‹Р№ - 1; РЈС…РѕР¶РµРЅРЅС‹Р№ - 1; РљРѕС‚ - 2 
+        ASSERT(abs(documents[0].relevance - (0.5 * log(3 * 1.0 / 1) + 0.25 * log(3 * 1.0 / 2))) < 1e-6); 
+        ASSERT(abs(documents[1].relevance - (0.25 * log(3 * 1.0 / 1))) < 1e-6); 
+        ASSERT(abs(documents[2].relevance - (0.25 * log(3 * 1.0 / 2))) < 1e-6); 
+    } 
+} 
+void TestRequestQueue() { 
+    SearchServer search_server("and in at"s); 
+    RequestQueue request_queue(search_server); 
+    search_server.AddDocument(1, "curly cat curly tail"s, DocumentStatus::ACTUAL, { 7, 2, 7 }); 
+    search_server.AddDocument(2, "curly dog and fancy collar"s, DocumentStatus::ACTUAL, { 1, 2, 3 }); 
+    search_server.AddDocument(3, "big cat fancy collar "s, DocumentStatus::ACTUAL, { 1, 2, 8 }); 
+    search_server.AddDocument(4, "big dog sparrow Eugene"s, DocumentStatus::ACTUAL, { 1, 3, 2 }); 
+    search_server.AddDocument(5, "big dog sparrow Vasiliy"s, DocumentStatus::ACTUAL, { 1, 1, 1 }); 
+    // 1439 Р·Р°РїСЂРѕСЃРѕРІ СЃ РЅСѓР»РµРІС‹Рј СЂРµР·СѓР»СЊС‚Р°С‚РѕРј 
+    for (int i = 0; i < 1439; ++i) { 
+        request_queue.AddFindRequest("empty request"s); 
+    } 
+    // РЎС‚Р°Р»Рѕ 1440 Р·Р°РїСЂРѕСЃРѕРІ: 1439 РїСѓСЃС‚С‹С… Р·Р°РїСЂРѕСЃРѕРІ Рё 1 РЅРµРїСѓСЃС‚РѕР№ 
+    request_queue.AddFindRequest("curly dog"s); 
+    // РЅРѕРІС‹Рµ СЃСѓС‚РєРё, РїРµСЂРІС‹Р№ Р·Р°РїСЂРѕСЃ СѓРґР°Р»РµРЅ, 1438 Р·Р°РїСЂРѕСЃРѕРІ СЃ РЅСѓР»РµРІС‹Рј СЂРµР·СѓР»СЊС‚Р°С‚РѕРј Рё 2 РЅРµРїСѓСЃС‚С‹С… 
+    request_queue.AddFindRequest("big collar"s); 
+    // РїРµСЂРІС‹Р№ Р·Р°РїСЂРѕСЃ СѓРґР°Р»РµРЅ, 1437 Р·Р°РїСЂРѕСЃРѕРІ СЃ РЅСѓР»РµРІС‹Рј СЂРµР·СѓР»СЊС‚Р°С‚РѕРј Рё 3 РЅРµРїСѓСЃС‚С‹С… 
+    request_queue.AddFindRequest("sparrow"s); 
+    //РџСЂРѕРІРµСЂСЏРµРј, С‡С‚Рѕ РїСѓСЃС‚С‹С… Р·Р°РїСЂРѕСЃРѕРІ РґРµР№СЃС‚РІРёС‚РµР»СЊРЅРѕ 1437 
+    ASSERT_EQUAL(request_queue.GetNoResultRequests(), 1437); 
+    //Р”РѕР±Р°РІРёРј 1444 РЅРµРїСѓСЃС‚С‹С… Р·Р°РїСЂРѕСЃРѕРІ 
+    for (int i = 0; i < 1444; ++i) { 
+        request_queue.AddFindRequest("dog"s); 
+    } 
+    //РџСѓСЃС‚С‹С… Р·Р°РїСЂРѕСЃРѕРІ РґРѕР»Р¶РЅРѕ СЃС‚Р°С‚СЊ 0 
+    ASSERT_EQUAL(request_queue.GetNoResultRequests(), 0); 
+} 
+void TestRemoveDuplicates() { 
+    SearchServer search_server("and with"s); 
+ 
+    search_server.AddDocument(1, "funny pet and nasty rat"s, DocumentStatus::ACTUAL, { 7, 2, 7 }); 
+    search_server.AddDocument(2, "funny pet with curly hair"s, DocumentStatus::ACTUAL, { 1, 2 }); 
+ 
+    // РґСѓР±Р»РёРєР°С‚ РґРѕРєСѓРјРµРЅС‚Р° 2, Р±СѓРґРµС‚ СѓРґР°Р»С‘РЅ 
+    search_server.AddDocument(3, "funny pet with curly hair"s, DocumentStatus::ACTUAL, { 1, 2 }); 
+ 
+    // РѕС‚Р»РёС‡РёРµ С‚РѕР»СЊРєРѕ РІ СЃС‚РѕРї-СЃР»РѕРІР°С…, СЃС‡РёС‚Р°РµРј РґСѓР±Р»РёРєР°С‚РѕРј 
+    search_server.AddDocument(4, "funny pet and curly hair"s, DocumentStatus::ACTUAL, { 1, 2 }); 
+ 
+    // РјРЅРѕР¶РµСЃС‚РІРѕ СЃР»РѕРІ С‚Р°РєРѕРµ Р¶Рµ, СЃС‡РёС‚Р°РµРј РґСѓР±Р»РёРєР°С‚РѕРј РґРѕРєСѓРјРµРЅС‚Р° 1 
+    search_server.AddDocument(5, "funny funny pet and nasty nasty rat"s, DocumentStatus::ACTUAL, { 1, 2 }); 
+ 
+    // РґРѕР±Р°РІРёР»РёСЃСЊ РЅРѕРІС‹Рµ СЃР»РѕРІР°, РґСѓР±Р»РёРєР°С‚РѕРј РЅРµ СЏРІР»СЏРµС‚СЃСЏ 
+    search_server.AddDocument(6, "funny pet and not very nasty rat"s, DocumentStatus::ACTUAL, { 1, 2 }); 
+ 
+    // РјРЅРѕР¶РµСЃС‚РІРѕ СЃР»РѕРІ С‚Р°РєРѕРµ Р¶Рµ, РєР°Рє РІ id 6, РЅРµСЃРјРѕС‚СЂСЏ РЅР° РґСЂСѓРіРѕР№ РїРѕСЂСЏРґРѕРє, СЃС‡РёС‚Р°РµРј РґСѓР±Р»РёРєР°С‚РѕРј 
+    search_server.AddDocument(7, "very nasty rat and not very funny pet"s, DocumentStatus::ACTUAL, { 1, 2 }); 
+ 
+    // РµСЃС‚СЊ РЅРµ РІСЃРµ СЃР»РѕРІР°, РЅРµ СЏРІР»СЏРµС‚СЃСЏ РґСѓР±Р»РёРєР°С‚РѕРј 
+    search_server.AddDocument(8, "pet with rat and rat and rat"s, DocumentStatus::ACTUAL, { 1, 2 }); 
+ 
+    // СЃР»РѕРІР° РёР· СЂР°Р·РЅС‹С… РґРѕРєСѓРјРµРЅС‚РѕРІ, РЅРµ СЏРІР»СЏРµС‚СЃСЏ РґСѓР±Р»РёРєР°С‚РѕРј 
+    search_server.AddDocument(9, "nasty rat with curly hair"s, DocumentStatus::ACTUAL, { 1, 2 }); 
+ 
+    //РџСЂРѕРІРµСЂСЏРµРј СЃРєРѕР»СЊРєРѕ РґРѕРєСѓРјРµРЅС‚РѕРІ СЃРѕРґРµСЂР¶РёС‚СЃСЏ РґРѕ РѕС‡РёСЃС‚РєРё 
+    ASSERT_EQUAL(search_server.GetDocumentCount(), 9); 
+ 
+    //РЈРґР°Р»СЏРµРј РґСѓР±Р»РёРєР°С‚С‹ 
+    RemoveDuplicates(search_server); 
+ 
+    //РџСЂРѕРІРµСЂСЏРµРј СЃРєРѕР»СЊРєРѕ РґРѕРєСѓРјРµРЅС‚РѕРІ СЃРѕРґРµСЂР¶РёС‚СЃСЏ РїРѕСЃР»Рµ РѕС‡РёСЃС‚РєРё 
+    ASSERT_EQUAL(search_server.GetDocumentCount(), 5); 
+ 
+    //РџСЂРѕРІРµСЂРёРј, С‡С‚Рѕ СѓРґР°Р»РёР»РёСЃСЊ Рё РѕСЃС‚Р°Р»РёСЃСЊ РїСЂР°РІРёР»СЊРЅС‹Рµ РґР°РєСѓРјРµРЅС‚С‹ 
+    auto documents = search_server.FindTopDocuments("nasty rat with curly hair"); 
+    ASSERT_EQUAL(documents.size(), 5); 
+    ASSERT_EQUAL(documents[0].id, 9); 
+    ASSERT_EQUAL(documents[1].id, 2); 
+    ASSERT_EQUAL(documents[2].id, 1); 
+    ASSERT_EQUAL(documents[3].id, 8); 
+    ASSERT_EQUAL(documents[4].id, 6); 
+} 
+// Р¤СѓРЅРєС†РёСЏ TestSearchServer СЏРІР»СЏРµС‚СЃСЏ С‚РѕС‡РєРѕР№ РІС…РѕРґР° РґР»СЏ Р·Р°РїСѓСЃРєР° С‚РµСЃС‚РѕРІ 
+void TestSearchServer() { 
+    RUN_TEST(TestExcludeStopWordsFromAddedDocumentContent); 
+    RUN_TEST(TestMinusWords); 
+    RUN_TEST(TestMatchDocuments); 
+    RUN_TEST(TestRelevanceSort); 
+    RUN_TEST(TestRatingCalculation); 
+    RUN_TEST(TestPredicate); 
+    RUN_TEST(TestStatusSearch); 
+    RUN_TEST(TestRelevanceCalculation); 
+    RUN_TEST(TestRequestQueue); 
+    RUN_TEST(TestRemoveDuplicates); 
+} 
