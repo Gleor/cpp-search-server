@@ -78,72 +78,6 @@ void PrintDocument(const Document& document) {
 }
 
 int main() {
-    //using namespace std::string_literals;
-    //TestSearchServer();
-    //std::cout << "All tests passed successfully"s << std::endl;
-    /*SearchServer server("и в на"s);
-    server.AddDocument(0, "белый кот и модный ошейник"s, DocumentStatus::ACTUAL, { 8, -3 });
-    server.AddDocument(1, "пушистый кот пушистый хвост"s, DocumentStatus::ACTUAL, { 7, 2, 7 });
-    server.AddDocument(2, "ухоженный пёс выразительные глаза"s, DocumentStatus::ACTUAL, { 5, -12, 2, 1 });
-    {
-        LOG_DURATION_STREAM("FindTopDocuments"s, std::cout);
-        const auto documents = server.FindTopDocuments("пушистый ухоженный кот"s);
-    }
-    {
-        LOG_DURATION_STREAM("MatchDocument"s, std::cout);
-        const auto [words, doc_status] = server.MatchDocument("кот"s, 0);
-    }*/
-
-   /* mt19937 generator;
-
-    const auto dictionary = GenerateDictionary(generator, 1000, 10);
-    const auto documents = GenerateQueries(generator, dictionary, 10000, 70);
-
-    const string query = GenerateQuery(generator, dictionary, 500, 0.1);
-
-    SearchServer search_server(dictionary[0]);
-    for (size_t i = 0; i < documents.size(); ++i) {
-        search_server.AddDocument(i, documents[i], DocumentStatus::ACTUAL, { 1, 2, 3 });
-    }
-
-    TEST(seq);
-    TEST(par);*/
-
-    /*SearchServer search_server("and with"s);
-
-    int id = 0;
-    for (
-        const string& text : {
-            "funny pet and nasty rat"s,
-            "funny pet with curly hair"s,
-            "funny pet and not very nasty rat"s,
-            "pet with rat and rat and rat"s,
-            "nasty rat with curly hair"s,
-        }
-        ) {
-        search_server.AddDocument(++id, text, DocumentStatus::ACTUAL, { 1, 2 });
-    }
-
-    const string query = "curly and funny -not"s;
-
-    {
-        const auto [words, status] = search_server.MatchDocument(query, 1);
-        cout << words.size() << " words for document 1"s << endl;
-        // 1 words for document 1
-    }
-
-    {
-        const auto [words, status] = search_server.MatchDocument(execution::seq, query, 2);
-        cout << words.size() << " words for document 2"s << endl;
-        // 2 words for document 2
-    }
-
-    {
-        const auto [words, status] = search_server.MatchDocument(execution::par, query, 3);
-        cout << words.size() << " words for document 3"s << endl;
-        // 0 words for document 3
-    }*/
-
     SearchServer search_server("and with"s);
     int id = 0;
     for (
@@ -157,17 +91,17 @@ int main() {
         search_server.AddDocument(++id, text, DocumentStatus::ACTUAL, { 1, 2 });
     }
     cout << "ACTUAL by default:"s << endl;
-    // последовательная версия
+    // ГЇГ®Г±Г«ГҐГ¤Г®ГўГ ГІГҐГ«ГјГ­Г Гї ГўГҐГ°Г±ГЁГї
     for (const Document& document : search_server.FindTopDocuments("curly nasty cat"s)) {
         PrintDocument(document);
     }
     cout << "BANNED:"s << endl;
-    // последовательная версия
+    // ГЇГ®Г±Г«ГҐГ¤Г®ГўГ ГІГҐГ«ГјГ­Г Гї ГўГҐГ°Г±ГЁГї
     for (const Document& document : search_server.FindTopDocuments(execution::seq, "curly nasty cat"s, DocumentStatus::BANNED)) {
         PrintDocument(document);
     }
     cout << "Even ids:"s << endl;
-    // параллельная версия
+    // ГЇГ Г°Г Г«Г«ГҐГ«ГјГ­Г Гї ГўГҐГ°Г±ГЁГї
     for (const Document& document : search_server.FindTopDocuments(execution::par, "curly nasty cat"s, [](int document_id, DocumentStatus status, int rating) { return document_id % 2 == 0; })) {
         PrintDocument(document);
     }
