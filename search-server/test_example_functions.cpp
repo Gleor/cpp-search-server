@@ -1,181 +1,95 @@
-#include "test_example_functions.h"
-#include "search_server.h"
-#include "document.h"
-#include "request_queue.h"
-#include "remove_duplicates.h"
-#include <set>
-
-using namespace std::string_literals;
-
-void AssertImpl(bool value, const std::string& expr_str, const std::string& file, const std::string& func, unsigned line,
-    const std::string& hint) {
-    if (!value) {
-        std::cerr << file << "("s << line << "): "s << func << ": "s;
-        std::cerr << "Assert("s << expr_str << ") failed."s;
-        if (!hint.empty()) {
-            std::cerr << " Hint: "s << hint;
-        }
-        std::cerr << std::endl;
-        abort();
-    }
-}
-
+#include "test_example_functions.h" 
+#include "search_server.h" 
+#include "document.h" 
+#include "request_queue.h" 
+#include "remove_duplicates.h" 
+#include <set> 
+ 
+using namespace std::string_literals; 
+ 
+void AssertImpl(bool value, const std::string& expr_str, const std::string& file, const std::string& func, unsigned line, 
+    const std::string& hint) { 
+    if (!value) { 
+        std::cerr << file << "("s << line << "): "s << func << ": "s; 
+        std::cerr << "Assert("s << expr_str << ") failed."s; 
+        if (!hint.empty()) { 
+            std::cerr << " Hint: "s << hint; 
+        } 
+        std::cerr << std::endl; 
+        abort(); 
+    } 
+} 
+ 
+// -------- Начало модульных тестов поисковой системы ---------- 
+ 
 // Тест проверяет, что поисковая система исключает стоп-слова при добавлении документов 
-void TestExcludeStopWordsFromAddedDocumentContent() {
-
-    const int doc_id = 42;
-    const int doc_id_1 = 6;
-    const std::string content = "cat in the city"s;
-    const std::string content_1 = "dog on the roof"s;
-    const std::vector<int> ratings = { 1, 2, 3 };
-    const std::vector<int> ratings_1 = { 3, 2, 4 };
-    {
-        SearchServer server("and in at"s);
-        server.AddDocument(doc_id, content, DocumentStatus::ACTUAL, ratings);
-        const auto found_docs = server.FindTopDocuments("in"s);
-        //Поиск по стоп слову не должен давать результатов
-        ASSERT_EQUAL(found_docs.size(), 0);
-    }
-
-    {
-        SearchServer server("in the"s);
-        server.AddDocument(doc_id, content, DocumentStatus::ACTUAL, ratings);
-        ASSERT_HINT(server.FindTopDocuments("in"s).empty(),
-            "Stop words must be excluded from documents"s);
-    }
-    // Проверка поиска отсутствующего слова и пустой строки
-    {
-        SearchServer server("in the on"s);
-        server.AddDocument(doc_id, content, DocumentStatus::ACTUAL, ratings);
-        server.AddDocument(doc_id_1, content_1, DocumentStatus::ACTUAL, ratings_1);
-        ASSERT_HINT(server.FindTopDocuments("parrot"s).empty(),
-            "Nothing should be returned when searching for the missing word"s);
-        ASSERT_HINT(server.FindTopDocuments(""s).empty(),
-            "Nothing should be returned when searching empty query"s);
-    }
-}
-
-void TestMinusWords() {
-    // Документы, содержащие минус слова не включаются в результат поиска
-    {
-        SearchServer server("in the on"s);
-        server.AddDocument(0, "black cat in the city"s, DocumentStatus::ACTUAL, { 1, 2, 3 });
-        server.AddDocument(1, "black dog on the roof"s, DocumentStatus::ACTUAL, { 3, 2, 4 });
-        ASSERT_HINT(server.FindTopDocuments("-black"s).empty(),
-            "Searching for minus word only"s);
-        const auto found_docs = server.FindTopDocuments("black -cat"s);
-        ASSERT_EQUAL(found_docs.size(), 1u);
-        const Document& doc0 = found_docs[0];
-        ASSERT_EQUAL(doc0.id, 1u);
-    }
-}
-
-void TestMatchDocuments() {
-    // Матчинг документов
-    {
-        SearchServer server("in the on"s);
-        server.AddDocument(0, "black cat in the city"s, DocumentStatus::ACTUAL, { 1, 2, 3 });
-        server.AddDocument(1, "black dog on the roof"s, DocumentStatus::ACTUAL, { 3, 2, 4 });
-        server.AddDocument(2, "green frog in the big garden"s, DocumentStatus::ACTUAL, { 5, -1, 1 });
-        const auto [words, doc_status] = server.MatchDocument("black dog", 0);
-        std::set<std::string> words_set(words.begin(), words.end());
-        ASSERT_EQUAL(words_set.count("black"s), 1);
-        const auto [words_1, doc_status_1] = server.MatchDocument("big cat -frog", 2);
-        ASSERT_EQUAL(words_1.size(), 0);
-    }
-}
-
-void TestRelevanceSort() {
-    // Сортировка по релевантности
-    {
-        SearchServer server("è â íà"s);
-        server.AddDocument(0, "áåëûé êîò è ìîäíûé îøåéíèê"s, DocumentStatus::ACTUAL, { 8, -3 });
-        server.AddDocument(1, "ïóøèñòûé êîò ïóøèñòûé õâîñò"s, DocumentStatus::ACTUAL, { 7, 2, 7 });
-        server.AddDocument(2, "óõîæåííûé ï¸ñ âûðàçèòåëüíûå ãëàçà"s, DocumentStatus::ACTUAL, { 5, -12, 2, 1 });
-        const auto documents = server.FindTopDocuments("ïóøèñòûé óõîæåííûé êîò"s);
-
-        ASSERT_EQUAL_HINT(documents.size(), 3, "Non empty container should be returned"s);
-        //Ïðåâåðÿåì ïðàâèëüíóþ ñîðòèðîâêó ïî ðåëåâàíòíîñòè ïóò¸ì ñðàâíåíèÿ ïîëåé relevance
-        ASSERT(documents[0].relevance > documents[1].relevance);
-        ASSERT(documents[1].relevance > documents[2].relevance);
-    }
-}
-
-void TestRatingCalculation() {
-    // Ïîäñ÷¸ò ðåéòèíãà
-
-    {
-        SearchServer server("è â íà"s);
-        //server.SetStopWords("è â íà"s);
-        server.AddDocument(0, "áåëûé êîò è ìîäíûé îøåéíèê"s, DocumentStatus::ACTUAL, { 8, -3 });
-        server.AddDocument(1, "ïóøèñòûé êîò ïóøèñòûé õâîñò"s, DocumentStatus::ACTUAL, { 7, 2, 7 });
-        server.AddDocument(2, "óõîæåííûé ï¸ñ âûðàçèòåëüíûå ãëàçà"s, DocumentStatus::ACTUAL, { 5, -12, 2, 1 });
-        const auto documents = server.FindTopDocuments("ïóøèñòûé óõîæåííûé êîò"s);
-        //Ïðîâåðêà íà òî, ÷òî âîçâðàùàåòñÿ íå ïóñòîé âåêòîð
-        ASSERT_EQUAL_HINT(documents.size(), 3, "Non empty container should be returned"s);
-        //Ïðîâåðÿåì ïðàâëüíûé ðàñ÷¸ò ðåéòèíãà
-        //Ñêëàäûâàåì âñå çíà÷åíèÿ âåêòîðà è äåëèì íà êîëè÷åñòâî ýëåìåíòîâ (ðàçìåð âåêòîðà)
-        ASSERT_EQUAL(documents[0].rating, ((7 + 2 + 7) / 3));
-        ASSERT_EQUAL(documents[1].rating, ((5 + (-12) + 2 + 1) / 4));
-        ASSERT_EQUAL(documents[2].rating, ((8 + (-3)) / 2));
-    }
-}
-
-void TestPredicate() {
-    // Òåñò ïðåäèêàòà
-
-    {
-        SearchServer server("è â íà"s);
-        //server.SetStopWords("è â íà"s);
-        server.AddDocument(0, "áåëûé êîò è ìîäíûé îøåéíèê"s, DocumentStatus::ACTUAL, { 8, -3 });
-        server.AddDocument(1, "ïóøèñòûé êîò ïóøèñòûé õâîñò"s, DocumentStatus::ACTUAL, { 7, 2, 7 });
-        server.AddDocument(2, "óõîæåííûé ï¸ñ âûðàçèòåëüíûå ãëàçà"s, DocumentStatus::ACTUAL, { 5, -12, 2, 1 });
-        server.AddDocument(3, "óõîæåííûé ñêâîðåö åâãåíèé"s, DocumentStatus::BANNED, { 9 });
-        const auto documents = server.FindTopDocuments("ïóøèñòûé óõîæåííûé êîò"s);
-        //Ïðîâåðêà íà òî, ÷òî âîçâðàùàåòñÿ íå ïóñòîé âåêòîð
-        ASSERT_EQUAL_HINT(documents.size(), 3, "Non empty container should be returned"s);
-        ASSERT_EQUAL(documents[0].id, 1);
-        ASSERT_EQUAL(documents[1].id, 0);
-        ASSERT_EQUAL(documents[2].id, 2);
-        const auto documents_1 = server.FindTopDocuments("ïóøèñòûé óõîæåííûé êîò"s, DocumentStatus::BANNED);
-        //Ïðîâåðêà íà òî, ÷òî âîçâðàùàåòñÿ íå ïóñòîé âåêòîð
-        ASSERT_EQUAL_HINT(documents_1.size(), 1, "Non empty container should be returned"s);
-        ASSERT_EQUAL(documents_1[0].id, 3);
-        const auto documents_2 = server.FindTopDocuments("ïóøèñòûé óõîæåííûé êîò"s, [](int document_id, DocumentStatus status, int rating) { return document_id % 2 == 0; });
-        //Ïðîâåðêà íà òî, ÷òî âîçâðàùàåòñÿ íå ïóñòîé âåêòîð
-        ASSERT_EQUAL_HINT(documents_2.size(), 2, "Non empty container should be returned"s);
-        ASSERT_EQUAL(documents_2[0].id, 0);
-        ASSERT_EQUAL(documents_2[1].id, 2);
-    }
-}
-void TestStatusSearch() {
-    // Òåñò ïîèñêà ïî ñòàòóñó
-
-    {
-        SearchServer server("è â íà"s);
-        //server.SetStopWords("è â íà"s);
-        server.AddDocument(0, "áåëûé êîò è ìîäíûé îøåéíèê"s, DocumentStatus::ACTUAL, { 8, -3 });
-        server.AddDocument(1, "áåëûé êîò è ìîäíûé îøåéíèê"s, DocumentStatus::IRRELEVANT, { 7, 2, 7 });
-        server.AddDocument(2, "áåëûé êîò è ìîäíûé îøåéíèê"s, DocumentStatus::BANNED, { 5, -12, 2, 1 });
-        server.AddDocument(3, "áåëûé êîò è ìîäíûé îøåéíèê"s, DocumentStatus::REMOVED, { 9 });
-        const auto documents = server.FindTopDocuments("ïóøèñòûé óõîæåííûé êîò"s, DocumentStatus::ACTUAL);
-        //Ïðîâåðêà íà òî, ÷òî âîçâðàùàåòñÿ íå ïóñòîé âåêòîð
-        ASSERT_EQUAL_HINT(documents.size(), 1, "Non empty container should be returned"s);
-        ASSERT_EQUAL(documents[0].id, 0);
-        const auto documents_1 = server.FindTopDocuments("ïóøèñòûé óõîæåííûé êîò"s, DocumentStatus::IRRELEVANT);
-        //Ïðîâåðêà íà òî, ÷òî âîçâðàùàåòñÿ íå ïóñòîé âåêòîð
-        ASSERT_EQUAL_HINT(documents_1.size(), 1, "Non empty container should be returned"s);
-        ASSERT_EQUAL(documents_1[0].id, 1);
-        const auto documents_2 = server.FindTopDocuments("ïóøèñòûé óõîæåííûé êîò"s, DocumentStatus::BANNED);
-        //Ïðîâåðêà íà òî, ÷òî âîçâðàùàåòñÿ íå ïóñòîé âåêòîð
-        ASSERT_EQUAL_HINT(documents_2.size(), 1, "Non empty container should be returned"s);
-        ASSERT_EQUAL(documents_2[0].id, 2);
-        const auto documents_3 = server.FindTopDocuments("ïóøèñòûé óõîæåííûé êîò"s, DocumentStatus::REMOVED);
-        //Ïðîâåðêà íà òî, ÷òî âîçâðàùàåòñÿ íå ïóñòîé âåêòîð
-        ASSERT_EQUAL_HINT(documents_3.size(), 1, "Non empty container should be returned"s);
-        ASSERT_EQUAL(documents_3[0].id, 3);
-    }
-}
+void TestExcludeStopWordsFromAddedDocumentContent() { 
+ 
+    const int doc_id = 42; 
+    const int doc_id_1 = 6; 
+    const std::string content = "cat in the city"s; 
+    const std::string content_1 = "dog on the roof"s; 
+    const std::vector<int> ratings = { 1, 2, 3 }; 
+    const std::vector<int> ratings_1 = { 3, 2, 4 }; 
+    { 
+        SearchServer server("and in at"s); 
+        server.AddDocument(doc_id, content, DocumentStatus::ACTUAL, ratings); 
+        const auto found_docs = server.FindTopDocuments("in"s); 
+        //Поиск по стоп слову не должен давать результатов 
+        ASSERT_EQUAL(found_docs.size(), 0); 
+    } 
+ 
+    { 
+        SearchServer server("in the"s); 
+        server.AddDocument(doc_id, content, DocumentStatus::ACTUAL, ratings); 
+        ASSERT_HINT(server.FindTopDocuments("in"s).empty(), 
+            "Stop words must be excluded from documents"s); 
+    } 
+    // Проверка поиска отсутствующего слова и пустой строки 
+    { 
+        SearchServer server("in the on"s); 
+        //server.SetStopWords("in the on"s); 
+        server.AddDocument(doc_id, content, DocumentStatus::ACTUAL, ratings); 
+        server.AddDocument(doc_id_1, content_1, DocumentStatus::ACTUAL, ratings_1); 
+        ASSERT_HINT(server.FindTopDocuments("parrot"s).empty(), 
+            "Nothing should be returned when searching for the missing word"s); 
+        ASSERT_HINT(server.FindTopDocuments(""s).empty(), 
+            "Nothing should be returned when searching empty query"s); 
+    } 
+} 
+ 
+void TestMinusWords() { 
+    // Документы, содержащие минус слова не включаются в результат поиска 
+ 
+    { 
+        SearchServer server("in the on"s); 
+        server.AddDocument(0, "black cat in the city"s, DocumentStatus::ACTUAL, { 1, 2, 3 }); 
+        server.AddDocument(1, "black dog on the roof"s, DocumentStatus::ACTUAL, { 3, 2, 4 }); 
+        ASSERT_HINT(server.FindTopDocuments("-black"s).empty(), 
+            "Searching for minus word only"s); 
+        const auto found_docs = server.FindTopDocuments("black -cat"s); 
+        ASSERT_EQUAL(found_docs.size(), 1u); 
+        const Document& doc0 = found_docs[0]; 
+        ASSERT_EQUAL(doc0.id, 1u); 
+    } 
+} 
+ 
+void TestMatchDocuments() { 
+    // Матчинг документов 
+    { 
+        SearchServer server("in the on"s); 
+        //server.SetStopWords("in the on"s); 
+        server.AddDocument(0, "black cat in the city"s, DocumentStatus::ACTUAL, { 1, 2, 3 }); 
+        server.AddDocument(1, "black dog on the roof"s, DocumentStatus::ACTUAL, { 3, 2, 4 }); 
+        server.AddDocument(2, "green frog in the big garden"s, DocumentStatus::ACTUAL, { 5, -1, 1 }); 
+        const auto [words, doc_status] = server.MatchDocument("black dog", 0); 
+        std::set<std::string> words_set(words.begin(), words.end()); 
+        ASSERT_EQUAL(words_set.count("black"s), 1); 
+        const auto [words_1, doc_status_1] = server.MatchDocument("big cat -frog", 2); 
+        ASSERT_EQUAL(words_1.size(), 0); 
+    } 
+} 
+ 
 void TestRelevanceSort() { 
     // Сортировка по релевантности 
  
@@ -242,7 +156,8 @@ void TestPredicate() {
     } 
 } 
 void TestStatusSearch() { 
-    // Тест поиска по статусу
+    // Тест поиска по статусу 
+ 
     { 
         SearchServer server("и в на"s); 
         //server.SetStopWords("и в на"s); 
@@ -268,9 +183,10 @@ void TestStatusSearch() {
         ASSERT_EQUAL(documents_3[0].id, 3); 
     } 
 } 
-
+//Примечание для ревьюера: тут можно использовать глобальную переменную THRESHOLD, но тренажер ругается на это 
 void TestRelevanceCalculation() { 
-    // Подсчёт релевантности
+    // Подсчёт релевантности 
+ 
     { 
         SearchServer server("и в на"s); 
         //server.SetStopWords("и в на"s); 
@@ -377,3 +293,5 @@ void TestSearchServer() {
     RUN_TEST(TestRequestQueue); 
     RUN_TEST(TestRemoveDuplicates); 
 } 
+ 
+// --------- Окончание модульных тестов поисковой системы -----------
