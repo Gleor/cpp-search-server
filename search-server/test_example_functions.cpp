@@ -48,7 +48,6 @@ void TestExcludeStopWordsFromAddedDocumentContent() {
     // Проверка поиска отсутствующего слова и пустой строки 
     { 
         SearchServer server("in the on"s); 
-        //server.SetStopWords("in the on"s); 
         server.AddDocument(doc_id, content, DocumentStatus::ACTUAL, ratings); 
         server.AddDocument(doc_id_1, content_1, DocumentStatus::ACTUAL, ratings_1); 
         ASSERT_HINT(server.FindTopDocuments("parrot"s).empty(), 
@@ -60,7 +59,6 @@ void TestExcludeStopWordsFromAddedDocumentContent() {
  
 void TestMinusWords() { 
     // Документы, содержащие минус слова не включаются в результат поиска 
- 
     { 
         SearchServer server("in the on"s); 
         server.AddDocument(0, "black cat in the city"s, DocumentStatus::ACTUAL, { 1, 2, 3 }); 
@@ -92,7 +90,6 @@ void TestMatchDocuments() {
  
 void TestRelevanceSort() { 
     // Сортировка по релевантности 
- 
     { 
         SearchServer server("и в на"s); 
         //server.SetStopWords("и в на"s); 
@@ -110,10 +107,8 @@ void TestRelevanceSort() {
  
 void TestRatingCalculation() { 
     // Подсчёт рейтинга 
- 
     { 
         SearchServer server("и в на"s); 
-        //server.SetStopWords("и в на"s); 
         server.AddDocument(0, "белый кот и модный ошейник"s, DocumentStatus::ACTUAL, { 8, -3 }); 
         server.AddDocument(1, "пушистый кот пушистый хвост"s, DocumentStatus::ACTUAL, { 7, 2, 7 }); 
         server.AddDocument(2, "ухоженный пёс выразительные глаза"s, DocumentStatus::ACTUAL, { 5, -12, 2, 1 }); 
@@ -130,10 +125,8 @@ void TestRatingCalculation() {
  
 void TestPredicate() { 
     // Тест предиката 
- 
     { 
         SearchServer server("и в на"s); 
-        //server.SetStopWords("и в на"s); 
         server.AddDocument(0, "белый кот и модный ошейник"s, DocumentStatus::ACTUAL, { 8, -3 }); 
         server.AddDocument(1, "пушистый кот пушистый хвост"s, DocumentStatus::ACTUAL, { 7, 2, 7 }); 
         server.AddDocument(2, "ухоженный пёс выразительные глаза"s, DocumentStatus::ACTUAL, { 5, -12, 2, 1 }); 
@@ -157,10 +150,8 @@ void TestPredicate() {
 } 
 void TestStatusSearch() { 
     // Тест поиска по статусу 
- 
     { 
         SearchServer server("и в на"s); 
-        //server.SetStopWords("и в на"s); 
         server.AddDocument(0, "белый кот и модный ошейник"s, DocumentStatus::ACTUAL, { 8, -3 }); 
         server.AddDocument(1, "белый кот и модный ошейник"s, DocumentStatus::IRRELEVANT, { 7, 2, 7 }); 
         server.AddDocument(2, "белый кот и модный ошейник"s, DocumentStatus::BANNED, { 5, -12, 2, 1 }); 
@@ -183,13 +174,11 @@ void TestStatusSearch() {
         ASSERT_EQUAL(documents_3[0].id, 3); 
     } 
 } 
-//Примечание для ревьюера: тут можно использовать глобальную переменную THRESHOLD, но тренажер ругается на это 
+
 void TestRelevanceCalculation() { 
     // Подсчёт релевантности 
- 
     { 
         SearchServer server("и в на"s); 
-        //server.SetStopWords("и в на"s); 
         server.AddDocument(0, "белый кот и модный ошейник"s, DocumentStatus::ACTUAL, { 8, -3 }); 
         server.AddDocument(1, "пушистый кот пушистый хвост"s, DocumentStatus::ACTUAL, { 7, 2, 7 }); 
         server.AddDocument(2, "ухоженный пёс выразительные глаза"s, DocumentStatus::ACTUAL, { 5, -12, 2, 1 }); 
