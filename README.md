@@ -1,5 +1,7 @@
 # **Search Server**
+
 ## **Описание**
+
 Данный проект представляет собой упрощённую реализацию поискового сервера, которая позволяет хранить документы, стоп-слова, а также осуществлять поиск по ключевым словам с возможностью ранжирования найденных документов по статистической метрике TF-IDF.
 
 Дополнительные возможности:
@@ -15,7 +17,8 @@
 Создание экземпляра класса осуществляется с помощью конструктора, в который передаётся набор стоп-слов в виде строки. Также есть возможность передать вместо строки произвольный контейнер, который должен поддерживать range-based for цикл
 
 Пример:
-```
+
+```cpp
 SearchServer search_server("and with in"s)
 ```
 ### **Добавление документов**
@@ -23,7 +26,8 @@ SearchServer search_server("and with in"s)
 Метод AddDocuments позволяет пользователю добавить документ: для этого в качестве параметров ему нужно передать id документа, его содержимое (в виде строки), статус и рейтинг (в виде вектора)
 
 Пример:
-```
+
+```cpp
 search_server.AddDocument(10, "white cat and yellow hat"s, DocumentStatus::ACTUAL, { 1, 2 })
 ```
 ### **Поиск по документам**
@@ -36,7 +40,8 @@ search_server.AddDocument(10, "white cat and yellow hat"s, DocumentStatus::ACTUA
 * предикат, в котором указаны параметры филтрации
 
 Пример:
-```
+
+```cpp
 search_server.FindTopDocuments(execution::par, "curly nasty cat"s, [](int document_id, DocumentStatus status, int rating) { return document_id % 2 == 0; })
 ```
 ### **Обработка очереди запросов**
@@ -45,7 +50,7 @@ search_server.FindTopDocuments(execution::par, "curly nasty cat"s, [](int docume
 
 Пример:
 
-```
+```cpp
 const vector<string> queries = {
     "nasty rat -not"s,
     "not very funny nasty pet"s,
@@ -62,7 +67,7 @@ for (const Document& document : ProcessQueriesJoined(search_server, queries)) {
 
 Пример:
 
-```
+```cpp
 const auto search_results = search_server.FindTopDocuments("curly dog"s);
 const int page_size = 2;
 const auto pages = Paginate(search_results, page_size);
